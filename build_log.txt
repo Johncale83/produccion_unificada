@@ -1,0 +1,18 @@
+
+Running Gradle task 'assembleRelease'...                        
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':file_picker:lintVitalAnalyzeRelease'.
+> java.nio.file.FileSystemException: C:\Users\Personal\Desktop\produccion_unificada\build\file_picker\intermediates\lint-cache\lintVitalAnalyzeRelease\migrated-jars\androidx.lifecycle.lint.LiveDataCoreIssueRegistry-32b654e6cacc2c23..jar: El proceso no tiene acceso al archivo porque est´┐¢ siendo utilizado por otro proceso
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 5s
+Running Gradle task 'assembleRelease'...                            6,2s
+Gradle task assembleRelease failed with exit code 1
