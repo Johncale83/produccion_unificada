@@ -23,9 +23,9 @@ const IsarFormulaSchema = CollectionSchema(
       type: IsarType.objectList,
       target: r'IsarAditivo',
     ),
-    r'arenaBlancaKg': PropertySchema(
+    r'arenaBlancaSilo4Kg': PropertySchema(
       id: 1,
-      name: r'arenaBlancaKg',
+      name: r'arenaBlancaSilo4Kg',
       type: IsarType.double,
     ),
     r'arenaSilo1Kg': PropertySchema(
@@ -43,18 +43,34 @@ const IsarFormulaSchema = CollectionSchema(
       name: r'cementoKg',
       type: IsarType.double,
     ),
-    r'esBlanca': PropertySchema(
+    r'cementoSilo7Kg': PropertySchema(
       id: 5,
+      name: r'cementoSilo7Kg',
+      type: IsarType.double,
+    ),
+    r'cementoSilo8Kg': PropertySchema(
+      id: 6,
+      name: r'cementoSilo8Kg',
+      type: IsarType.double,
+    ),
+    r'esBlanca': PropertySchema(
+      id: 7,
       name: r'esBlanca',
       type: IsarType.bool,
     ),
+    r'materialesPrincipales': PropertySchema(
+      id: 8,
+      name: r'materialesPrincipales',
+      type: IsarType.objectList,
+      target: r'IsarMaterialPrincipal',
+    ),
     r'pesoBaseKg': PropertySchema(
-      id: 6,
+      id: 9,
       name: r'pesoBaseKg',
       type: IsarType.double,
     ),
     r'referencia': PropertySchema(
-      id: 7,
+      id: 10,
       name: r'referencia',
       type: IsarType.string,
     )
@@ -80,7 +96,10 @@ const IsarFormulaSchema = CollectionSchema(
     )
   },
   links: {},
-  embeddedSchemas: {r'IsarAditivo': IsarAditivoSchema},
+  embeddedSchemas: {
+    r'IsarMaterialPrincipal': IsarMaterialPrincipalSchema,
+    r'IsarAditivo': IsarAditivoSchema
+  },
   getId: _isarFormulaGetId,
   getLinks: _isarFormulaGetLinks,
   attach: _isarFormulaAttach,
@@ -108,6 +127,20 @@ int _isarFormulaEstimateSize(
     }
   }
   {
+    final list = object.materialesPrincipales;
+    if (list != null) {
+      bytesCount += 3 + list.length * 3;
+      {
+        final offsets = allOffsets[IsarMaterialPrincipal]!;
+        for (var i = 0; i < list.length; i++) {
+          final value = list[i];
+          bytesCount += IsarMaterialPrincipalSchema.estimateSize(
+              value, offsets, allOffsets);
+        }
+      }
+    }
+  }
+  {
     final value = object.referencia;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -128,13 +161,21 @@ void _isarFormulaSerialize(
     IsarAditivoSchema.serialize,
     object.aditivos,
   );
-  writer.writeDouble(offsets[1], object.arenaBlancaKg);
+  writer.writeDouble(offsets[1], object.arenaBlancaSilo4Kg);
   writer.writeDouble(offsets[2], object.arenaSilo1Kg);
   writer.writeDouble(offsets[3], object.arenaSilo2Kg);
   writer.writeDouble(offsets[4], object.cementoKg);
-  writer.writeBool(offsets[5], object.esBlanca);
-  writer.writeDouble(offsets[6], object.pesoBaseKg);
-  writer.writeString(offsets[7], object.referencia);
+  writer.writeDouble(offsets[5], object.cementoSilo7Kg);
+  writer.writeDouble(offsets[6], object.cementoSilo8Kg);
+  writer.writeBool(offsets[7], object.esBlanca);
+  writer.writeObjectList<IsarMaterialPrincipal>(
+    offsets[8],
+    allOffsets,
+    IsarMaterialPrincipalSchema.serialize,
+    object.materialesPrincipales,
+  );
+  writer.writeDouble(offsets[9], object.pesoBaseKg);
+  writer.writeString(offsets[10], object.referencia);
 }
 
 IsarFormula _isarFormulaDeserialize(
@@ -150,14 +191,22 @@ IsarFormula _isarFormulaDeserialize(
     allOffsets,
     IsarAditivo(),
   );
-  object.arenaBlancaKg = reader.readDoubleOrNull(offsets[1]);
+  object.arenaBlancaSilo4Kg = reader.readDoubleOrNull(offsets[1]);
   object.arenaSilo1Kg = reader.readDoubleOrNull(offsets[2]);
   object.arenaSilo2Kg = reader.readDoubleOrNull(offsets[3]);
   object.cementoKg = reader.readDoubleOrNull(offsets[4]);
-  object.esBlanca = reader.readBoolOrNull(offsets[5]);
+  object.cementoSilo7Kg = reader.readDoubleOrNull(offsets[5]);
+  object.cementoSilo8Kg = reader.readDoubleOrNull(offsets[6]);
+  object.esBlanca = reader.readBoolOrNull(offsets[7]);
   object.id = id;
-  object.pesoBaseKg = reader.readDoubleOrNull(offsets[6]);
-  object.referencia = reader.readStringOrNull(offsets[7]);
+  object.materialesPrincipales = reader.readObjectList<IsarMaterialPrincipal>(
+    offsets[8],
+    IsarMaterialPrincipalSchema.deserialize,
+    allOffsets,
+    IsarMaterialPrincipal(),
+  );
+  object.pesoBaseKg = reader.readDoubleOrNull(offsets[9]);
+  object.referencia = reader.readStringOrNull(offsets[10]);
   return object;
 }
 
@@ -184,10 +233,21 @@ P _isarFormulaDeserializeProp<P>(
     case 4:
       return (reader.readDoubleOrNull(offset)) as P;
     case 5:
-      return (reader.readBoolOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 6:
       return (reader.readDoubleOrNull(offset)) as P;
     case 7:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 8:
+      return (reader.readObjectList<IsarMaterialPrincipal>(
+        offset,
+        IsarMaterialPrincipalSchema.deserialize,
+        allOffsets,
+        IsarMaterialPrincipal(),
+      )) as P;
+    case 9:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 10:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -517,31 +577,31 @@ extension IsarFormulaQueryFilter
   }
 
   QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
-      arenaBlancaKgIsNull() {
+      arenaBlancaSilo4KgIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'arenaBlancaKg',
+        property: r'arenaBlancaSilo4Kg',
       ));
     });
   }
 
   QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
-      arenaBlancaKgIsNotNull() {
+      arenaBlancaSilo4KgIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'arenaBlancaKg',
+        property: r'arenaBlancaSilo4Kg',
       ));
     });
   }
 
   QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
-      arenaBlancaKgEqualTo(
+      arenaBlancaSilo4KgEqualTo(
     double? value, {
     double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'arenaBlancaKg',
+        property: r'arenaBlancaSilo4Kg',
         value: value,
         epsilon: epsilon,
       ));
@@ -549,7 +609,7 @@ extension IsarFormulaQueryFilter
   }
 
   QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
-      arenaBlancaKgGreaterThan(
+      arenaBlancaSilo4KgGreaterThan(
     double? value, {
     bool include = false,
     double epsilon = Query.epsilon,
@@ -557,7 +617,7 @@ extension IsarFormulaQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'arenaBlancaKg',
+        property: r'arenaBlancaSilo4Kg',
         value: value,
         epsilon: epsilon,
       ));
@@ -565,7 +625,7 @@ extension IsarFormulaQueryFilter
   }
 
   QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
-      arenaBlancaKgLessThan(
+      arenaBlancaSilo4KgLessThan(
     double? value, {
     bool include = false,
     double epsilon = Query.epsilon,
@@ -573,7 +633,7 @@ extension IsarFormulaQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'arenaBlancaKg',
+        property: r'arenaBlancaSilo4Kg',
         value: value,
         epsilon: epsilon,
       ));
@@ -581,7 +641,7 @@ extension IsarFormulaQueryFilter
   }
 
   QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
-      arenaBlancaKgBetween(
+      arenaBlancaSilo4KgBetween(
     double? lower,
     double? upper, {
     bool includeLower = true,
@@ -590,7 +650,7 @@ extension IsarFormulaQueryFilter
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'arenaBlancaKg',
+        property: r'arenaBlancaSilo4Kg',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -853,6 +913,174 @@ extension IsarFormulaQueryFilter
   }
 
   QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      cementoSilo7KgIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'cementoSilo7Kg',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      cementoSilo7KgIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'cementoSilo7Kg',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      cementoSilo7KgEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'cementoSilo7Kg',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      cementoSilo7KgGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'cementoSilo7Kg',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      cementoSilo7KgLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'cementoSilo7Kg',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      cementoSilo7KgBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'cementoSilo7Kg',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      cementoSilo8KgIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'cementoSilo8Kg',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      cementoSilo8KgIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'cementoSilo8Kg',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      cementoSilo8KgEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'cementoSilo8Kg',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      cementoSilo8KgGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'cementoSilo8Kg',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      cementoSilo8KgLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'cementoSilo8Kg',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      cementoSilo8KgBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'cementoSilo8Kg',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
       esBlancaIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -930,6 +1158,113 @@ extension IsarFormulaQueryFilter
         upper: upper,
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      materialesPrincipalesIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'materialesPrincipales',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      materialesPrincipalesIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'materialesPrincipales',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      materialesPrincipalesLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'materialesPrincipales',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      materialesPrincipalesIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'materialesPrincipales',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      materialesPrincipalesIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'materialesPrincipales',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      materialesPrincipalesLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'materialesPrincipales',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      materialesPrincipalesLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'materialesPrincipales',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      materialesPrincipalesLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'materialesPrincipales',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
     });
   }
 
@@ -1180,6 +1515,13 @@ extension IsarFormulaQueryObject
       return query.object(q, r'aditivos');
     });
   }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      materialesPrincipalesElement(FilterQuery<IsarMaterialPrincipal> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'materialesPrincipales');
+    });
+  }
 }
 
 extension IsarFormulaQueryLinks
@@ -1187,16 +1529,17 @@ extension IsarFormulaQueryLinks
 
 extension IsarFormulaQuerySortBy
     on QueryBuilder<IsarFormula, IsarFormula, QSortBy> {
-  QueryBuilder<IsarFormula, IsarFormula, QAfterSortBy> sortByArenaBlancaKg() {
+  QueryBuilder<IsarFormula, IsarFormula, QAfterSortBy>
+      sortByArenaBlancaSilo4Kg() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'arenaBlancaKg', Sort.asc);
+      return query.addSortBy(r'arenaBlancaSilo4Kg', Sort.asc);
     });
   }
 
   QueryBuilder<IsarFormula, IsarFormula, QAfterSortBy>
-      sortByArenaBlancaKgDesc() {
+      sortByArenaBlancaSilo4KgDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'arenaBlancaKg', Sort.desc);
+      return query.addSortBy(r'arenaBlancaSilo4Kg', Sort.desc);
     });
   }
 
@@ -1235,6 +1578,32 @@ extension IsarFormulaQuerySortBy
   QueryBuilder<IsarFormula, IsarFormula, QAfterSortBy> sortByCementoKgDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'cementoKg', Sort.desc);
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterSortBy> sortByCementoSilo7Kg() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cementoSilo7Kg', Sort.asc);
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterSortBy>
+      sortByCementoSilo7KgDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cementoSilo7Kg', Sort.desc);
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterSortBy> sortByCementoSilo8Kg() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cementoSilo8Kg', Sort.asc);
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterSortBy>
+      sortByCementoSilo8KgDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cementoSilo8Kg', Sort.desc);
     });
   }
 
@@ -1277,16 +1646,17 @@ extension IsarFormulaQuerySortBy
 
 extension IsarFormulaQuerySortThenBy
     on QueryBuilder<IsarFormula, IsarFormula, QSortThenBy> {
-  QueryBuilder<IsarFormula, IsarFormula, QAfterSortBy> thenByArenaBlancaKg() {
+  QueryBuilder<IsarFormula, IsarFormula, QAfterSortBy>
+      thenByArenaBlancaSilo4Kg() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'arenaBlancaKg', Sort.asc);
+      return query.addSortBy(r'arenaBlancaSilo4Kg', Sort.asc);
     });
   }
 
   QueryBuilder<IsarFormula, IsarFormula, QAfterSortBy>
-      thenByArenaBlancaKgDesc() {
+      thenByArenaBlancaSilo4KgDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'arenaBlancaKg', Sort.desc);
+      return query.addSortBy(r'arenaBlancaSilo4Kg', Sort.desc);
     });
   }
 
@@ -1325,6 +1695,32 @@ extension IsarFormulaQuerySortThenBy
   QueryBuilder<IsarFormula, IsarFormula, QAfterSortBy> thenByCementoKgDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'cementoKg', Sort.desc);
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterSortBy> thenByCementoSilo7Kg() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cementoSilo7Kg', Sort.asc);
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterSortBy>
+      thenByCementoSilo7KgDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cementoSilo7Kg', Sort.desc);
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterSortBy> thenByCementoSilo8Kg() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cementoSilo8Kg', Sort.asc);
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterSortBy>
+      thenByCementoSilo8KgDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cementoSilo8Kg', Sort.desc);
     });
   }
 
@@ -1379,9 +1775,10 @@ extension IsarFormulaQuerySortThenBy
 
 extension IsarFormulaQueryWhereDistinct
     on QueryBuilder<IsarFormula, IsarFormula, QDistinct> {
-  QueryBuilder<IsarFormula, IsarFormula, QDistinct> distinctByArenaBlancaKg() {
+  QueryBuilder<IsarFormula, IsarFormula, QDistinct>
+      distinctByArenaBlancaSilo4Kg() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'arenaBlancaKg');
+      return query.addDistinctBy(r'arenaBlancaSilo4Kg');
     });
   }
 
@@ -1400,6 +1797,18 @@ extension IsarFormulaQueryWhereDistinct
   QueryBuilder<IsarFormula, IsarFormula, QDistinct> distinctByCementoKg() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'cementoKg');
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QDistinct> distinctByCementoSilo7Kg() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'cementoSilo7Kg');
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QDistinct> distinctByCementoSilo8Kg() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'cementoSilo8Kg');
     });
   }
 
@@ -1438,9 +1847,10 @@ extension IsarFormulaQueryProperty
     });
   }
 
-  QueryBuilder<IsarFormula, double?, QQueryOperations> arenaBlancaKgProperty() {
+  QueryBuilder<IsarFormula, double?, QQueryOperations>
+      arenaBlancaSilo4KgProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'arenaBlancaKg');
+      return query.addPropertyName(r'arenaBlancaSilo4Kg');
     });
   }
 
@@ -1462,9 +1872,30 @@ extension IsarFormulaQueryProperty
     });
   }
 
+  QueryBuilder<IsarFormula, double?, QQueryOperations>
+      cementoSilo7KgProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'cementoSilo7Kg');
+    });
+  }
+
+  QueryBuilder<IsarFormula, double?, QQueryOperations>
+      cementoSilo8KgProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'cementoSilo8Kg');
+    });
+  }
+
   QueryBuilder<IsarFormula, bool?, QQueryOperations> esBlancaProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'esBlanca');
+    });
+  }
+
+  QueryBuilder<IsarFormula, List<IsarMaterialPrincipal>?, QQueryOperations>
+      materialesPrincipalesProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'materialesPrincipales');
     });
   }
 
@@ -1496,6 +1927,11 @@ const IsarCatalogoAditivoSchema = CollectionSchema(
     r'nombre': PropertySchema(
       id: 0,
       name: r'nombre',
+      type: IsarType.string,
+    ),
+    r'origen': PropertySchema(
+      id: 1,
+      name: r'origen',
       type: IsarType.string,
     )
   },
@@ -1539,6 +1975,12 @@ int _isarCatalogoAditivoEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
+  {
+    final value = object.origen;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   return bytesCount;
 }
 
@@ -1549,6 +1991,7 @@ void _isarCatalogoAditivoSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.nombre);
+  writer.writeString(offsets[1], object.origen);
 }
 
 IsarCatalogoAditivo _isarCatalogoAditivoDeserialize(
@@ -1560,6 +2003,7 @@ IsarCatalogoAditivo _isarCatalogoAditivoDeserialize(
   final object = IsarCatalogoAditivo();
   object.id = id;
   object.nombre = reader.readStringOrNull(offsets[0]);
+  object.origen = reader.readStringOrNull(offsets[1]);
   return object;
 }
 
@@ -1571,6 +2015,8 @@ P _isarCatalogoAditivoDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
+      return (reader.readStringOrNull(offset)) as P;
+    case 1:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -2005,6 +2451,160 @@ extension IsarCatalogoAditivoQueryFilter on QueryBuilder<IsarCatalogoAditivo,
       ));
     });
   }
+
+  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
+      origenIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'origen',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
+      origenIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'origen',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
+      origenEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'origen',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
+      origenGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'origen',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
+      origenLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'origen',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
+      origenBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'origen',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
+      origenStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'origen',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
+      origenEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'origen',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
+      origenContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'origen',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
+      origenMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'origen',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
+      origenIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'origen',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
+      origenIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'origen',
+        value: '',
+      ));
+    });
+  }
 }
 
 extension IsarCatalogoAditivoQueryObject on QueryBuilder<IsarCatalogoAditivo,
@@ -2026,6 +2626,20 @@ extension IsarCatalogoAditivoQuerySortBy
       sortByNombreDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'nombre', Sort.desc);
+    });
+  }
+
+  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterSortBy>
+      sortByOrigen() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'origen', Sort.asc);
+    });
+  }
+
+  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterSortBy>
+      sortByOrigenDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'origen', Sort.desc);
     });
   }
 }
@@ -2059,6 +2673,20 @@ extension IsarCatalogoAditivoQuerySortThenBy
       return query.addSortBy(r'nombre', Sort.desc);
     });
   }
+
+  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterSortBy>
+      thenByOrigen() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'origen', Sort.asc);
+    });
+  }
+
+  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterSortBy>
+      thenByOrigenDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'origen', Sort.desc);
+    });
+  }
 }
 
 extension IsarCatalogoAditivoQueryWhereDistinct
@@ -2067,6 +2695,13 @@ extension IsarCatalogoAditivoQueryWhereDistinct
       distinctByNombre({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'nombre', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QDistinct>
+      distinctByOrigen({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'origen', caseSensitive: caseSensitive);
     });
   }
 }
@@ -2085,11 +2720,512 @@ extension IsarCatalogoAditivoQueryProperty
       return query.addPropertyName(r'nombre');
     });
   }
+
+  QueryBuilder<IsarCatalogoAditivo, String?, QQueryOperations>
+      origenProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'origen');
+    });
+  }
 }
 
 // **************************************************************************
 // IsarEmbeddedGenerator
 // **************************************************************************
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
+const IsarMaterialPrincipalSchema = Schema(
+  name: r'IsarMaterialPrincipal',
+  id: -7762529624386347107,
+  properties: {
+    r'cantidadKg': PropertySchema(
+      id: 0,
+      name: r'cantidadKg',
+      type: IsarType.double,
+    ),
+    r'categoria': PropertySchema(
+      id: 1,
+      name: r'categoria',
+      type: IsarType.string,
+    ),
+    r'nombre': PropertySchema(
+      id: 2,
+      name: r'nombre',
+      type: IsarType.string,
+    )
+  },
+  estimateSize: _isarMaterialPrincipalEstimateSize,
+  serialize: _isarMaterialPrincipalSerialize,
+  deserialize: _isarMaterialPrincipalDeserialize,
+  deserializeProp: _isarMaterialPrincipalDeserializeProp,
+);
+
+int _isarMaterialPrincipalEstimateSize(
+  IsarMaterialPrincipal object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  {
+    final value = object.categoria;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.nombre;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  return bytesCount;
+}
+
+void _isarMaterialPrincipalSerialize(
+  IsarMaterialPrincipal object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeDouble(offsets[0], object.cantidadKg);
+  writer.writeString(offsets[1], object.categoria);
+  writer.writeString(offsets[2], object.nombre);
+}
+
+IsarMaterialPrincipal _isarMaterialPrincipalDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = IsarMaterialPrincipal();
+  object.cantidadKg = reader.readDoubleOrNull(offsets[0]);
+  object.categoria = reader.readStringOrNull(offsets[1]);
+  object.nombre = reader.readStringOrNull(offsets[2]);
+  return object;
+}
+
+P _isarMaterialPrincipalDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 1:
+      return (reader.readStringOrNull(offset)) as P;
+    case 2:
+      return (reader.readStringOrNull(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+extension IsarMaterialPrincipalQueryFilter on QueryBuilder<
+    IsarMaterialPrincipal, IsarMaterialPrincipal, QFilterCondition> {
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> cantidadKgIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'cantidadKg',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> cantidadKgIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'cantidadKg',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> cantidadKgEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'cantidadKg',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> cantidadKgGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'cantidadKg',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> cantidadKgLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'cantidadKg',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> cantidadKgBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'cantidadKg',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> categoriaIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'categoria',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> categoriaIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'categoria',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> categoriaEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'categoria',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> categoriaGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'categoria',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> categoriaLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'categoria',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> categoriaBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'categoria',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> categoriaStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'categoria',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> categoriaEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'categoria',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+          QAfterFilterCondition>
+      categoriaContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'categoria',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+          QAfterFilterCondition>
+      categoriaMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'categoria',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> categoriaIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'categoria',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> categoriaIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'categoria',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> nombreIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'nombre',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> nombreIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'nombre',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> nombreEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'nombre',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> nombreGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'nombre',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> nombreLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'nombre',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> nombreBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'nombre',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> nombreStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'nombre',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> nombreEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'nombre',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+          QAfterFilterCondition>
+      nombreContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'nombre',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+          QAfterFilterCondition>
+      nombreMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'nombre',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> nombreIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'nombre',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarMaterialPrincipal, IsarMaterialPrincipal,
+      QAfterFilterCondition> nombreIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'nombre',
+        value: '',
+      ));
+    });
+  }
+}
+
+extension IsarMaterialPrincipalQueryObject on QueryBuilder<
+    IsarMaterialPrincipal, IsarMaterialPrincipal, QFilterCondition> {}
 
 // coverage:ignore-file
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types

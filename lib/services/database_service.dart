@@ -20,7 +20,7 @@ class DatabaseService {
     await seedInitialData();
   }
 
-  static Future<void> seedInitialData() async {
+  static Future<int> seedInitialData({bool force = false}) async {
     // Check if any formulas exist
     final count = await _isar.isarFormulas.count();
     
@@ -32,19 +32,79 @@ class DatabaseService {
 
     if (countCatalog == 0) {
       final defaultCatalogs = [
-        'Opagel', 'Melflux', 'DLP 212', 'Elotex', 'Wekcelo MP 150',
-        'Walocel 58150', 'Aglomerante PDF', 'Fortacret', 'Formiato Calcio', 'Arena 1040'
+        {'nombre': 'Opagel CMT', 'origen': 'Minoritario 1', 'peso': 25.0},
+        {'nombre': 'MELFLUX 5581', 'origen': 'Minoritario 2', 'peso': 25.0},
+        {'nombre': 'Formiato Calcio', 'origen': 'Minoritario 2', 'peso': 25.0},
+        {'nombre': 'DLP 212', 'origen': 'Minoritario 4', 'peso': 20.0},
+        {'nombre': 'DLP 2000', 'origen': 'Minoritario 4', 'peso': 20.0},
+        {'nombre': 'ELOTEX FX 1000', 'origen': 'Minoritario 6', 'peso': 25.0},
+        {'nombre': 'WEKCELO MP 150', 'origen': 'Minoritario 5', 'peso': 25.0},
+        {'nombre': 'Walocel WL VP-M-58150', 'origen': 'Minoritario 5', 'peso': 25.0},
+        {'nombre': 'Aglomerante', 'origen': 'PDF', 'peso': 25.0},
+        {'nombre': 'FORTACRET 1D', 'origen': 'Tolva de Fibra', 'peso': 25.0},
       ];
       await _isar.writeTxn(() async {
-        for (var name in defaultCatalogs) {
+        for (var item in defaultCatalogs) {
           await _isar.isarCatalogoAditivos.put(
-            IsarCatalogoAditivo()..nombre = name
+            IsarCatalogoAditivo()
+              ..nombre = item['nombre'] as String
+              ..origen = item['origen'] as String
+              ..pesoBulto = item['peso'] as double
           );
         }
       });
     }
 
-    if (count > 0 && countBlancas > 0) return;
+    // --- LIMPIEZA Y ACTUALIZACIÓN AUTOMÁTICA DEL CATÁLOGO ---
+    await _isar.writeTxn(() async {
+      // 1. Eliminar la Arena del catálogo si existe (ya no es un aditivo)
+      await _isar.isarCatalogoAditivos.filter()
+          .nombreContains('Arena')
+          .deleteFirst();
+
+      // 2. Asegurar ubicaciones para aditivos comunes que estén vacíos
+      final todos = await _isar.isarCatalogoAditivos.where().findAll();
+      for (var adit in todos) {
+        if (adit.origen == null || adit.origen!.isEmpty || adit.origen == 'Sin ubicación') {
+          final n = (adit.nombre ?? '').toUpperCase();
+          if (n.contains('OPAGEL')) {
+            adit.origen = 'Minoritario 1';
+          } else if (n.contains('MELFLUX')) {
+            adit.origen = 'Minoritario 2';
+          } else if (n.contains('FORMIATO')) {
+            adit.origen = 'Minoritario 2';
+          } else if (n.contains('DLP')) {
+            adit.origen = 'Minoritario 4';
+          } else if (n.contains('ELOTEX')) {
+            adit.origen = 'Minoritario 6';
+          } else if (n.contains('WALOCEL')) {
+            adit.origen = 'Minoritario 5';
+          } else if (n.contains('WEKCELO')) {
+            adit.origen = 'Minoritario 5';
+          } else if (n.contains('AGLOMERANTE')) {
+            adit.origen = 'PDF';
+          } else if (n.contains('FORTACRET')) {
+            adit.origen = 'Tolva de Fibra';
+          }
+          
+          await _isar.isarCatalogoAditivos.put(adit);
+        }
+      }
+    });
+
+    if (!force && count > 0 && countBlancas > 0) {
+      // Si ya hay datos, aseguramos que no haya nulos en esBlanca para evitar que desaparezcan de la UI
+      final nulos = await _isar.isarFormulas.filter().esBlancaIsNull().findAll();
+      if (nulos.isNotEmpty) {
+        await _isar.writeTxn(() async {
+          for (var f in nulos) {
+            f.esBlanca = false;
+            await _isar.isarFormulas.put(f);
+          }
+        });
+      }
+      return countBlancas;
+    }
 
     final List<IsarFormula> formulasToInsert = [];
 
@@ -55,40 +115,87 @@ class DatabaseService {
             (a) =>
                 IsarAditivo()
                   ..nombre = a.nombre
-                  ..cantidadKg = a.cantidadKg,
+                  ..cantidadKg = a.cantidadKg
+                  ..origen = a.origen,
           )
           .toList();
     }
 
-    // Seed Grises only if DB is empty
-    if (count == 0) {
+    // Seed Grises if forced or if DB is empty
+    if (force || count == 0) {
       for (var formula in formulasGrises) {
         formulasToInsert.add(
           IsarFormula()
             ..referencia = formula.referencia
             ..esBlanca = false
             ..pesoBaseKg = formula.pesoBaseKg
-            ..arenaSilo1Kg = formula.arenaAmarillaKg > 1000 ? 1000.0 : formula.arenaAmarillaKg
-            ..arenaSilo2Kg = formula.arenaAmarillaKg > 1000 ? formula.arenaAmarillaKg - 1000.0 : 0.0
-            ..arenaBlancaKg = formula.arenaBlancaKg
-            ..cementoKg = formula.cementoKg
+            ..materialesPrincipales = [
+              if (formula.arenaAmarillaKg > 0)
+                IsarMaterialPrincipal()
+                  ..nombre = 'Silo 1'
+                  ..categoria = 'Arena Amarilla'
+                  ..cantidadKg = formula.arenaAmarillaKg > 1000 ? 1000.0 : formula.arenaAmarillaKg,
+              if (formula.arenaAmarillaKg > 1000)
+                IsarMaterialPrincipal()
+                  ..nombre = 'Silo 2'
+                  ..categoria = 'Arena Amarilla'
+                  ..cantidadKg = formula.arenaAmarillaKg - 1000.0,
+              if (formula.arenaBlancaKg > 0)
+                IsarMaterialPrincipal()
+                  ..nombre = 'Silo 4'
+                  ..categoria = 'Arena Blanca'
+                  ..cantidadKg = formula.arenaBlancaKg,
+              if (formula.arenaSiliceKg > 0)
+                IsarMaterialPrincipal()
+                  ..nombre = 'Silo 5'
+                  ..categoria = 'Arena Silice 10-40'
+                  ..cantidadKg = formula.arenaSiliceKg,
+              if (formula.cementoKg > 0)
+                IsarMaterialPrincipal()
+                  ..nombre = 'Silo 3'
+                  ..categoria = 'Cemento Gris'
+                  ..cantidadKg = formula.cementoKg,
+            ]
             ..aditivos = mapAditivos(formula.aditivos),
         );
       }
     }
 
-    // Seed Blancas if they are missing
-    if (countBlancas == 0) {
+    // Seed Blancas if forced or if they are missing
+    if (force || countBlancas == 0) {
       for (var formula in formulasBlancos) {
         formulasToInsert.add(
           IsarFormula()
             ..referencia = formula.referencia
             ..esBlanca = true
             ..pesoBaseKg = formula.pesoBaseKg
-            ..arenaSilo1Kg = formula.arenaAmarillaKg
-            ..arenaSilo2Kg = 0.0
-            ..arenaBlancaKg = formula.arenaBlancaKg
-            ..cementoKg = formula.cementoKg
+            ..materialesPrincipales = [
+              if (formula.arenaAmarillaKg > 0)
+                IsarMaterialPrincipal()
+                  ..nombre = 'Silo 1'
+                  ..categoria = 'Arena Amarilla'
+                  ..cantidadKg = formula.arenaAmarillaKg,
+              if (formula.arenaBlancaKg > 0)
+                IsarMaterialPrincipal()
+                  ..nombre = 'Silo 4'
+                  ..categoria = 'Arena Blanca'
+                  ..cantidadKg = formula.arenaBlancaKg,
+              if (formula.arenaSiliceKg > 0)
+                IsarMaterialPrincipal()
+                  ..nombre = 'Silo 5'
+                  ..categoria = 'Arena Silice 10-40'
+                  ..cantidadKg = formula.arenaSiliceKg,
+              if (formula.cementoKg > 0)
+                IsarMaterialPrincipal()
+                  ..nombre = 'Silo 7'
+                  ..categoria = 'Cemento Blanco'
+                  ..cantidadKg = formula.cementoKg > 350 ? 350.0 : formula.cementoKg,
+              if (formula.cementoKg > 350)
+                IsarMaterialPrincipal()
+                  ..nombre = 'Silo 8'
+                  ..categoria = 'Cemento Blanco'
+                  ..cantidadKg = formula.cementoKg - 350.0,
+            ]
             ..aditivos = mapAditivos(formula.aditivos),
         );
       }
@@ -96,9 +203,16 @@ class DatabaseService {
 
     if (formulasToInsert.isNotEmpty) {
       await _isar.writeTxn(() async {
-        await _isar.isarFormulas.putAll(formulasToInsert);
+        if (force) {
+          // Si es forzado, borramos todo lo anterior para asegurar limpieza total
+          await _isar.isarFormulas.clear();
+        }
+        await _isar.isarFormulas.putAllByReferencia(formulasToInsert);
       });
     }
+
+    final finalCountBlancas = await _isar.isarFormulas.filter().esBlancaEqualTo(true).count();
+    return finalCountBlancas;
   }
 
   static Future<List<IsarFormula>> getFormulas(bool esBlanca) async {
@@ -133,8 +247,10 @@ class DatabaseService {
         'pesoBaseKg': f.pesoBaseKg,
         'arenaSilo1Kg': f.arenaSilo1Kg,
         'arenaSilo2Kg': f.arenaSilo2Kg,
-        'arenaBlancaKg': f.arenaBlancaKg,
+        'arenaBlancaSilo4Kg': f.arenaBlancaSilo4Kg,
         'cementoKg': f.cementoKg,
+        'cementoSilo7Kg': f.cementoSilo7Kg,
+        'cementoSilo8Kg': f.cementoSilo8Kg,
         'aditivos': f.aditivos?.map((a) => {
           'nombre': a.nombre,
           'cantidadKg': a.cantidadKg,
@@ -186,9 +302,20 @@ class DatabaseService {
                 ..pesoBaseKg = (item['pesoBaseKg'] as num?)?.toDouble()
                 ..arenaSilo1Kg = newSilo1
                 ..arenaSilo2Kg = newSilo2
-                ..arenaBlancaKg = (item['arenaBlancaKg'] as num?)?.toDouble()
+                ..arenaBlancaSilo4Kg = (item['arenaBlancaSilo4Kg'] as num? ?? item['arenaBlancaKg'] as num?)?.toDouble()
                 ..cementoKg = (item['cementoKg'] as num?)?.toDouble()
+                ..cementoSilo7Kg = (item['cementoSilo7Kg'] as num?)?.toDouble()
+                ..cementoSilo8Kg = (item['cementoSilo8Kg'] as num?)?.toDouble()
                 ..aditivos = isarAditivos;
+              
+              // Migración de legado para blancas: si cementoKg tiene valor pero los nuevos silos no, mover a Silo 7
+              if (nuevaFormula.esBlanca == true && 
+                  (nuevaFormula.cementoKg ?? 0) > 0 && 
+                  (nuevaFormula.cementoSilo7Kg ?? 0) == 0 && 
+                  (nuevaFormula.cementoSilo8Kg ?? 0) == 0) {
+                nuevaFormula.cementoSilo7Kg = nuevaFormula.cementoKg;
+                nuevaFormula.cementoKg = 0.0;
+              }
 
               await _isar.isarFormulas.put(nuevaFormula);
               formulasRecuperadas++;
@@ -209,25 +336,46 @@ class DatabaseService {
     return await _isar.isarCatalogoAditivos.where().findAll();
   }
 
-  static Future<void> addAditivoCatalogo(String nombre) async {
-    if (nombre.trim().isEmpty) return;
-    
+  static Future<void> addAditivoCatalogo(String nombre, {String? origen, double? pesoBulto}) async {
     final normalized = nombre.trim();
-    final existing = await _isar.isarCatalogoAditivos
-        .filter()
-        .nombreEqualTo(normalized)
-        .findFirst();
+    if (normalized.isEmpty) return;
+    
+    await _isar.writeTxn(() async {
+      final existing = await _isar.isarCatalogoAditivos
+          .filter()
+          .nombreEqualTo(normalized, caseSensitive: false)
+          .findFirst();
 
-    if (existing == null) {
-      await _isar.writeTxn(() async {
+      if (existing != null) {
+        // Si existe, actualizamos sus datos
+        existing.origen = origen?.trim();
+        existing.pesoBulto = pesoBulto ?? 25.0;
+        await _isar.isarCatalogoAditivos.put(existing);
+      } else {
+        // Si no existe, creamos uno nuevo
         await _isar.isarCatalogoAditivos.put(
-          IsarCatalogoAditivo()..nombre = normalized,
+          IsarCatalogoAditivo()
+            ..nombre = normalized
+            ..origen = origen?.trim()
+            ..pesoBulto = pesoBulto ?? 25.0,
         );
+      }
+    });
+  }
+ 
+  static Future<void> updateAditivoCatalogo(Id id, String nombre, String? origen, double? pesoBulto) async {
+    final existing = await _isar.isarCatalogoAditivos.get(id);
+    if (existing != null) {
+      await _isar.writeTxn(() async {
+        existing.nombre = nombre.trim();
+        existing.origen = origen?.trim();
+        existing.pesoBulto = pesoBulto ?? 25.0;
+        await _isar.isarCatalogoAditivos.put(existing);
       });
     }
   }
 
-  static Future<void> deleteAditivoCatalogo(int id) async {
+  static Future<void> deleteAditivoCatalogo(Id id) async {
     await _isar.writeTxn(() async {
       await _isar.isarCatalogoAditivos.delete(id);
     });

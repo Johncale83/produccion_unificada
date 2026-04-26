@@ -1,9 +1,11 @@
 // Archivo: lib/calculadora_proporciones_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:produccion_unificada/models/isar_formula.dart';
-import 'package:produccion_unificada/services/database_service.dart';
-import 'constants.dart';
+import 'package:produccion_unificada/services/preferencias_service.dart';
+import 'package:produccion_unificada/services/formula_state.dart';
+import 'package:produccion_unificada/constants.dart';
 
 class CalculadoraProporcionesScreen extends StatefulWidget {
   const CalculadoraProporcionesScreen({super.key});
@@ -28,15 +30,38 @@ class _CalculadoraProporcionesScreenState
   @override
   void initState() {
     super.initState();
-    _cargarFormulas();
+    _pesoDeseadoController.text = PreferenciasService.pesoDeseado.toString();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _cargarFormulas();
+      _cargarUltimaFormula();
+    });
   }
 
-  Future<void> _cargarFormulas() async {
-    final formulas = await DatabaseService.getAllFormulas();
-    if (mounted) {
-      setState(() {
-        _formulas = formulas;
-      });
+  void _cargarFormulas() {
+    if (!mounted) return;
+    final formulaState = Provider.of<FormulaState>(context, listen: false);
+    setState(() {
+      _formulas = formulaState.formulas;
+      
+      // Actualizar la fórmula seleccionada si ya existía una
+      if (_formulaSeleccionada != null) {
+        _formulaSeleccionada = _formulas.where((f) => f.id == _formulaSeleccionada!.id).firstOrNull 
+            ?? _formulas.where((f) => f.referencia == _formulaSeleccionada!.referencia).firstOrNull;
+      }
+    });
+  }
+
+  Future<void> _cargarUltimaFormula() async {
+    final refGuardada = PreferenciasService.ultimaFormula;
+    if (refGuardada != null) {
+      final formulas = Provider.of<FormulaState>(context, listen: false).formulas;
+      final formula = formulas.where((f) => f.referencia == refGuardada).firstOrNull;
+      if (formula != null && mounted) {
+        setState(() {
+          _formulaSeleccionada = formula;
+          _autoCompleteController?.text = refGuardada;
+        });
+      }
     }
   }
 
@@ -52,8 +77,10 @@ class _CalculadoraProporcionesScreenState
   }
 
   Future<void> _calcularProporciones() async {
-    // Cierra el teclado
     FocusScope.of(context).unfocus();
+
+    final pesoDeseado = double.tryParse(_pesoDeseadoController.text.trim()) ?? 2400.0;
+    PreferenciasService.pesoDeseado = pesoDeseado;
 
     setState(() {
       _resultadoCalculo = null;
@@ -91,9 +118,7 @@ class _CalculadoraProporcionesScreenState
     final double pesoRealPorCarga = resultadosPorCarga['peso_total'] as double;
 
     // 4. CÁLCULO DE LA ORDEN DE PRODUCCIÓN COMPLETA
-    double totalArenaComun = 0.0;
-    double totalArenaBlanca = 0.0;
-    double totalCemento = 0.0;
+    List<Map<String, dynamic>> opPrincipalesDetalle = [];
     List<Map<String, dynamic>> totalesAditivos = [];
     double totalKgOrden = kgTotalesOrden ?? 0.0;
     double numeroDeCargas = 0.0;
@@ -103,42 +128,74 @@ class _CalculadoraProporcionesScreenState
     if (mostrarOp) {
       numeroDeCargas = kgTotalesOrden / pesoRealPorCarga;
 
-      totalArenaComun =
-          (resultadosPorCarga['arena_amarilla_total_plano'] as double) * numeroDeCargas;
-      totalArenaBlanca =
-          (resultadosPorCarga['arena_blanca_total_plano'] as double) * numeroDeCargas;
-      totalCemento = (resultadosPorCarga['cemento_total_plano'] as double) * numeroDeCargas;
+      if (resultadosPorCarga['carga_principales_detalle'] != null) {
+        for (var detalle in (resultadosPorCarga['carga_principales_detalle'] as List<Map<String, dynamic>>)) {
+          opPrincipalesDetalle.add({
+            'origen': detalle['origen'],
+            'cantidad': (detalle['cantidad'] as double) * numeroDeCargas,
+          });
+        }
+      }
 
-      List<Map<String, dynamic>> aditivosPorCarga =
-          resultadosPorCarga['aditivos_lista'];
+      List<Map<String, dynamic>> aditivosPorCarga = resultadosPorCarga['carga_aditivos'];
       for (var aditivo in aditivosPorCarga) {
         totalesAditivos.add({
           'nombre': aditivo['nombre'],
+          'origen': aditivo['origen'], // CORRECCIÓN: Agregar origen
           'cantidad': (aditivo['cantidad'] as double) * numeroDeCargas,
         });
       }
     }
 
+    // --- ORDENAMIENTO DE ADITIVOS ---
+    // Regla: Por número de Minoritario (1-6), luego otros silos, y al final Fortacret y PDF.
+    void ordenarAditivos(List<Map<String, dynamic>> lista) {
+      lista.sort((a, b) {
+        final nombreA = (a['nombre'] as String).toUpperCase();
+        final nombreB = (b['nombre'] as String).toUpperCase();
+        final origenA = (a['origen'] as String).toUpperCase();
+        final origenB = (b['origen'] as String).toUpperCase();
+        
+        // Identificar pesos de importancia
+        bool esFortA = origenA.contains('FIBRA') || nombreA.contains('FORTACRET');
+        bool esPDFA = origenA.contains('PDF') || nombreA.contains('AGLOMERANTE');
+        bool esFortB = origenB.contains('FIBRA') || nombreB.contains('FORTACRET');
+        bool esPDFB = origenB.contains('PDF') || nombreB.contains('AGLOMERANTE');
+
+        // Asignar peso de grupo: Minoritarios (0), Otros/Silos (10), Fortacret (20), PDF (30)
+        int grupoA = esPDFA ? 30 : (esFortA ? 20 : (origenA.contains('MINORITARIO') ? 0 : 10));
+        int grupoB = esPDFB ? 30 : (esFortB ? 20 : (origenB.contains('MINORITARIO') ? 0 : 10));
+
+        if (grupoA != grupoB) return grupoA.compareTo(grupoB);
+
+        // Si ambos son Minoritarios, ordenar por el número (Minoritario 1 < Minoritario 2)
+        if (grupoA == 0) {
+          int numA = int.tryParse(origenA.replaceAll(RegExp(r'[^0-9]'), '')) ?? 99;
+          int numB = int.tryParse(origenB.replaceAll(RegExp(r'[^0-9]'), '')) ?? 99;
+          if (numA != numB) return numA.compareTo(numB);
+        }
+
+        return nombreA.compareTo(nombreB); // Alfabético si todo lo demás es igual
+      });
+    }
+
+    List<Map<String, dynamic>> aditivosCargaOrdenados = List.from(resultadosPorCarga['carga_aditivos']);
+    ordenarAditivos(aditivosCargaOrdenados);
+    ordenarAditivos(totalesAditivos);
+
     // 5. ACTUALIZAR EL ESTADO
     setState(() {
       _resultadoCalculo = {
         // Resultados por Carga Individual
-        'carga_arena_amarilla_detalle': resultadosPorCarga['arena_amarilla_detalle'],
-        'carga_arena_blanca_detalle': resultadosPorCarga['arena_blanca_detalle'],
-        'carga_cemento_detalle': resultadosPorCarga['cemento_detalle'],
-        'carga_aditivos': resultadosPorCarga['aditivos_lista'],
+        'carga_principales_detalle': resultadosPorCarga['carga_principales_detalle'],
+        'carga_aditivos': aditivosCargaOrdenados,
         'carga_peso_total': pesoRealPorCarga,
 
         // Resultados de la Orden de Producción (OP)
         'op_kg_totales': totalKgOrden,
         'op_num_cargas': numeroDeCargas,
-        'op_arena_amarilla': totalArenaComun,
-        'op_arena_blanca': totalArenaBlanca,
-        'op_cemento': totalCemento,
-        'op_aditivos':
-            totalesAditivos.isNotEmpty
-                ? totalesAditivos
-                : resultadosPorCarga['aditivos_lista'],
+        'op_principales_detalle': opPrincipalesDetalle,
+        'op_aditivos': totalesAditivos,
         'mostrar_op': mostrarOp,
       };
     });
@@ -146,22 +203,17 @@ class _CalculadoraProporcionesScreenState
 
   // Mapa de colores para los aditivos
   final Map<String, Color> _coloresAditivos = {
-    'Wekcelo MP 150': Colors.orange,
-    'Warocel 58150': Colors.deepOrange,
-    'Walocel 58150': Colors.deepOrange,
-    'Wekcelo 58150': Colors.brown,
-    'DLP 212': Colors.teal,
-    'DLP 2000': Colors.cyan,
-    'Formiato Calcio': Colors.purple,
-    'Arena 1040': Colors.amber[900]!,
-    'Aglomerante': Colors.lime[800]!,
-    'Opagel': Colors.pink,
-    'Elotex ': Colors.indigo,
-    'Elotex': Colors.indigo,
-    'Fortacret ': Colors.red,
-    'Fortacret': Colors.red,
-    'Melflux ': Colors.green[800]!,
-    'Melflux': Colors.green[800]!,
+    'WEKCELO MP 150': Colors.orange[800]!,
+    'Walocel WL VP-M-58150': Colors.green[800]!,
+    'DLP 212': Colors.blue[700]!,
+    'DLP 2000': Colors.lightBlue[800]!,
+    'Formiato Calcio': Colors.purple[700]!,
+    'Arena Silice 10-40': Colors.brown[700]!,
+    'Aglomerante': Colors.amber[900]!,
+    'Opagel CMT': Colors.red[700]!,
+    'ELOTEX FX 1000': Colors.indigo[700]!,
+    'FORTACRET 1D': Colors.deepOrange[700]!,
+    'MELFLUX 5581': Colors.teal[700]!,
   };
 
   String _formatearValor(double valor) {
@@ -182,42 +234,76 @@ class _CalculadoraProporcionesScreenState
     bool isPrincipal = false,
     bool isAditivo = false,
     bool isCantidadCargas = false,
+    String? tolva,
+    bool mostrarBultos = false,
+    double? pesoBulto,
+    bool redondearAEntero = false, // Nueva opción para eliminar decimales
   }) {
-    // Definimos el color primario
-    // const MaterialColor primaryIndustrial = MaterialColor(0xFF1A237E, <int, Color>{900: Color(0xFF1A237E)});
-
-    TextStyle style = TextStyle(
+    TextStyle baseStyle = TextStyle(
       fontSize: isPrincipal ? 18 : 16,
-      fontWeight:
-          isPrincipal
-              ? FontWeight.bold
-              : isAditivo
-              ? FontWeight.normal
-              : FontWeight.w500,
-      color:
-          isPrincipal
-              ? Colors.black87
-              : isAditivo
-              ? (_coloresAditivos.entries
-                  .firstWhere(
-                    (entry) => material.contains(entry.key),
-                    orElse: () => const MapEntry('', Colors.black87),
-                  )
-                  .value)
-              : primaryIndustrial,
+      fontWeight: isPrincipal ? FontWeight.bold : FontWeight.w500,
+      color: isPrincipal ? Colors.black87 : primaryIndustrial,
     );
+
+    // Color específico si es aditivo
+    Color colorAditivo = Colors.black87;
+    if (isAditivo) {
+      colorAditivo = _coloresAditivos.entries
+          .firstWhere(
+            (entry) => material.contains(entry.key),
+            orElse: () => const MapEntry('', Colors.black87),
+          )
+          .value;
+    }
+
+    // Cálculo de bultos
+    String textoCantidad = '';
+    if (isCantidadCargas) {
+      textoCantidad = redondearAEntero 
+          ? '${cantidad.round()} cargas' 
+          : '${cantidad.toStringAsFixed(4)} cargas';
+    } else {
+      textoCantidad = redondearAEntero 
+          ? '${cantidad.round()} kg' 
+          : '${_formatearValor(cantidad)} kg';
+    }
+
+    // REGLA: Excluir Aglomerante/PDF de bultos y asegurar mínimo 1 bulto para los demás
+    bool esAglomerante = material.toUpperCase().contains('AGLOMERANTE') || (tolva?.toUpperCase().contains('PDF') ?? false);
+
+    if (mostrarBultos && pesoBulto != null && pesoBulto > 0 && !esAglomerante) {
+      // REGLA: Redondear siempre al valor superior (ej: 14.4 -> 15 bultos)
+      double numBultos = (cantidad / pesoBulto).ceilToDouble();
+      
+      textoCantidad += ' (${_formatearValor(numBultos)} bultos)';
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(child: Text(material, style: style)),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: baseStyle.copyWith(color: isAditivo ? colorAditivo : null),
+                children: [
+                  TextSpan(text: material),
+                  if (tolva != null)
+                    TextSpan(
+                      text: ' ($tolva)',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                ],
+              ),
+            ),
+          ),
           Text(
-            isCantidadCargas
-                ? '${cantidad.toStringAsFixed(4)} cargas'
-                : '${_formatearValor(cantidad)} kg',
-            style: style.copyWith(fontWeight: FontWeight.bold),
+            textoCantidad,
+            style: baseStyle.copyWith(
+              fontWeight: FontWeight.bold,
+              color: isAditivo ? colorAditivo : null,
+            ),
           ),
         ],
       ),
@@ -226,44 +312,59 @@ class _CalculadoraProporcionesScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Proporciones de Materiales',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: primaryIndustrial,
+    final formulaState = context.watch<FormulaState>();
+    final formulas = formulaState.formulas;
+
+    // Sincronización reactiva: buscamos la versión más reciente de la fórmula seleccionada
+    // Esto evita el uso de postFrameCallback y mantiene la UI siempre al día.
+    final IsarFormula? formulaParaBuild = _formulaSeleccionada == null
+        ? null
+        : formulas
+            .where((f) => f.id == _formulaSeleccionada!.id)
+            .firstOrNull ?? _formulaSeleccionada;
+
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Proporciones de Materiales',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: primaryIndustrial,
+                    ),
+                  ),
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.clear_all, color: primaryIndustrial),
-                tooltip: 'Limpiar Calculadora',
-                onPressed: _limpiarDatos,
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          // Campo de Referencia con Autocompletado (Predictivo)
+                IconButton(
+                  icon: const Icon(Icons.clear_all, color: primaryIndustrial),
+                  tooltip: 'Limpiar Calculadora',
+                  onPressed: _limpiarDatos,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // Campo de Referencia con Autocompletado (Predictivo)
             Autocomplete<IsarFormula>(
               displayStringForOption: (f) => f.referencia ?? '',
               optionsBuilder: (TextEditingValue textEditingValue) {
                 if (textEditingValue.text.isEmpty) {
                   return const Iterable<IsarFormula>.empty();
                 }
-                return _formulas.where(
+                return formulas.where(
                   (f) => (f.referencia ?? '').contains(
                     textEditingValue.text,
                   ),
                 );
               },
               onSelected: (IsarFormula selection) {
+                PreferenciasService.ultimaFormula = selection.referencia;
                 setState(() => _formulaSeleccionada = selection);
                 FocusScope.of(context).unfocus();
               },
@@ -282,7 +383,7 @@ class _CalculadoraProporcionesScreenState
                     labelText: 'Referencia de la Fórmula',
                     hintText: 'Ej: 901...',
                     border: const OutlineInputBorder(),
-                    suffixIcon: _formulaSeleccionada != null
+                    suffixIcon: formulaParaBuild != null
                         ? IconButton(
                             icon: const Icon(Icons.clear),
                             onPressed: () {
@@ -402,31 +503,23 @@ class _CalculadoraProporcionesScreenState
               ),
               const SizedBox(height: 10),
 
-              // Componentes Principales Detallados por Silo
-              if (_resultadoCalculo!['carga_arena_amarilla_detalle'] != null)
-                ...(_resultadoCalculo!['carga_arena_amarilla_detalle'] as List<Map<String, dynamic>>).map((detalle) {
+              // Componentes Principales Dinámicos (Sin títulos rígidos)
+              if (_resultadoCalculo!['carga_principales_detalle'] != null)
+                ...(_resultadoCalculo!['carga_principales_detalle'] as List<Map<String, dynamic>>).map((detalle) {
+                  // Separar el nombre del silo (ej: "Arena Amarilla (Silo 1)" -> "Arena Amarilla" y "Silo 1")
+                  String fullOrigen = detalle['origen'] as String;
+                  String nombre = fullOrigen;
+                  String? silo;
+                  if (fullOrigen.contains('(')) {
+                    final parts = fullOrigen.split('(');
+                    nombre = parts[0].trim();
+                    silo = parts[1].replaceAll(')', '').trim();
+                  }
                   return _buildResultadoFila(
-                    'Arena Amarilla (${detalle['origen']})',
+                    nombre,
                     detalle['cantidad'] as double,
                     isPrincipal: true,
-                  );
-                }),
-
-              if (_resultadoCalculo!['carga_arena_blanca_detalle'] != null)
-                ...(_resultadoCalculo!['carga_arena_blanca_detalle'] as List<Map<String, dynamic>>).map((detalle) {
-                  return _buildResultadoFila(
-                    'Arena Blanca (${detalle['origen']})',
-                    detalle['cantidad'] as double,
-                    isPrincipal: true,
-                  );
-                }),
-
-              if (_resultadoCalculo!['carga_cemento_detalle'] != null)
-                ...(_resultadoCalculo!['carga_cemento_detalle'] as List<Map<String, dynamic>>).map((detalle) {
-                  return _buildResultadoFila(
-                    'Cemento (${detalle['origen']})',
-                    detalle['cantidad'] as double,
-                    isPrincipal: true,
+                    tolva: silo,
                   );
                 }),
 
@@ -440,15 +533,15 @@ class _CalculadoraProporcionesScreenState
                 ...(_resultadoCalculo!['carga_aditivos']
                         as List<Map<String, dynamic>>)
                     .map((aditivoMap) {
-                      final nombre = aditivoMap['nombre'] as String? ?? 'Aditivo';
-                      final origen = aditivoMap['origen'] as String? ?? 'Sin Tolva Asignada';
-                      final textoOrigen = origen == 'Sin Tolva Asignada' ? '(Sin Tolva Asignada)' : '($origen)';
-                      return _buildResultadoFila(
-                        '  • $nombre $textoOrigen',
-                        aditivoMap['cantidad'] as double,
-                        isAditivo: true,
-                      );
-                    }),
+                  final nombre = aditivoMap['nombre'] as String? ?? 'Aditivo';
+                  final origen = aditivoMap['origen'] as String? ?? 'Sin Tolva Asignada';
+                  return _buildResultadoFila(
+                    '  • $nombre',
+                    aditivoMap['cantidad'] as double,
+                    isAditivo: true,
+                    tolva: origen,
+                  );
+                }),
 
               // TOTALES DE LA ORDEN DE PRODUCCIÓN (OP)
               if (_resultadoCalculo!['mostrar_op'] == true) ...[
@@ -469,26 +562,28 @@ class _CalculadoraProporcionesScreenState
                   _resultadoCalculo!['op_num_cargas'] as double,
                   isPrincipal: true,
                   isCantidadCargas: true,
+                  redondearAEntero: true,
                 ),
                 const Divider(),
 
-                if ((_resultadoCalculo!['op_arena_amarilla'] as double) > 0)
-                  _buildResultadoFila(
-                    'TOTAL Arena Amarilla (OP)',
-                    _resultadoCalculo!['op_arena_amarilla'] as double,
-                    isPrincipal: true,
-                  ),
-                if ((_resultadoCalculo!['op_arena_blanca'] as double) > 0)
-                  _buildResultadoFila(
-                    'TOTAL Arena Blanca (OP)',
-                    _resultadoCalculo!['op_arena_blanca'] as double,
-                    isPrincipal: true,
-                  ),
-                _buildResultadoFila(
-                  'TOTAL Cemento (OP)',
-                  _resultadoCalculo!['op_cemento'] as double,
-                  isPrincipal: true,
-                ),
+                if (_resultadoCalculo!['op_principales_detalle'] != null)
+                  ...(_resultadoCalculo!['op_principales_detalle'] as List<Map<String, dynamic>>).map((detalle) {
+                    String fullOrigen = detalle['origen'] as String;
+                    String nombre = 'TOTAL $fullOrigen';
+                    String? silo;
+                    if (fullOrigen.contains('(')) {
+                      final parts = fullOrigen.split('(');
+                      nombre = 'TOTAL ${parts[0].trim()}';
+                      silo = parts[1].replaceAll(')', '').trim();
+                    }
+                    return _buildResultadoFila(
+                      nombre,
+                      detalle['cantidad'] as double,
+                      isPrincipal: true,
+                      tolva: silo,
+                      redondearAEntero: true,
+                    );
+                  }),
 
                 const SizedBox(height: 16),
                 const Text(
@@ -500,15 +595,22 @@ class _CalculadoraProporcionesScreenState
                   ...(_resultadoCalculo!['op_aditivos']
                           as List<Map<String, dynamic>>)
                       .map((aditivoMap) {
-                        final nombre = aditivoMap['nombre'] as String? ?? 'Aditivo';
-                        final origen = aditivoMap['origen'] as String? ?? 'Sin Tolva Asignada';
-                        final textoOrigen = origen == 'Sin Tolva Asignada' ? '(Sin Tolva Asignada)' : '($origen)';
-                        return _buildResultadoFila(
-                          '  • TOTAL $nombre $textoOrigen',
-                          aditivoMap['cantidad'] as double,
-                          isAditivo: true,
-                        );
-                      }),
+                    final nombre = aditivoMap['nombre'] as String? ?? 'Aditivo';
+                    final origen = aditivoMap['origen'] as String? ?? 'Sin Tolva Asignada';
+                    final materialText = '  • TOTAL $nombre';
+                    
+                    // Buscamos el peso del bulto en el catálogo global
+                    final pesoBulto = formulaState.obtenerPesoBulto(nombre);
+
+                    return _buildResultadoFila(
+                      materialText,
+                      aditivoMap['cantidad'] as double,
+                      isAditivo: true,
+                      tolva: origen,
+                      mostrarBultos: true,
+                      pesoBulto: pesoBulto,
+                    );
+                  }),
               ],
 
               const SizedBox(height: 20),
@@ -528,6 +630,7 @@ class _CalculadoraProporcionesScreenState
             ],
           ],
         ),
+      ),
     );
   }
 }

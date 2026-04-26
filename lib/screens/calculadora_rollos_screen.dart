@@ -1,12 +1,15 @@
 // Archivo: lib/calculadora_rollos_screen.dart
 
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'calculadora_logica.dart';
-import 'constants.dart';
-import 'models/isar_formula.dart';
-import 'services/database_service.dart';
-import 'services/configuracion_rollos_service.dart';
-import 'screens/configuracion_rollos_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:produccion_unificada/calculadora_logica.dart';
+import 'package:produccion_unificada/constants.dart';
+import 'package:produccion_unificada/models/isar_formula.dart';
+import 'package:produccion_unificada/services/configuracion_rollos_service.dart';
+import 'package:produccion_unificada/services/preferencias_service.dart';
+import 'package:produccion_unificada/services/formula_state.dart';
+import 'package:produccion_unificada/screens/configuracion_rollos_screen.dart';
 
 class CalculadoraRollosScreen extends StatefulWidget {
   const CalculadoraRollosScreen({super.key});
@@ -28,11 +31,13 @@ class _CalculadoraRollosScreenState extends State<CalculadoraRollosScreen> {
   int _resultadoBolsas = 0;
   int _resultadoEstibas = 0;
   int _resultadoBultosAdicionales = 0;
+  double _resultadoPesoRollo = 0.0;
   String _mensajeError = '';
 
   // --- Fórmulas e integración ---
   List<IsarFormula> _formulas = [];
   IsarFormula? _formulaSeleccionada;
+  TextEditingController? _formulaAutoCompleteController;
 
   // --- Resultados de integración ---
   int? _cargasCompletas;
@@ -46,10 +51,19 @@ class _CalculadoraRollosScreenState extends State<CalculadoraRollosScreen> {
   @override
   void initState() {
     super.initState();
-    _formatoSeleccionado = 25;
-    _bolsasPorEstibaActual = bolsasPorEstibaPorFormato[25]!;
-    _cargarFormulas();
+    _formatoSeleccionado = PreferenciasService.formatoRollos;
+    _bolsasPorEstibaActual = bolsasPorEstibaPorFormato[_formatoSeleccionado]!;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _cargarFormulas();
+    });
     _cargarConfiguracion();
+  }
+
+  void _cargarFormulas() {
+    final formulaState = Provider.of<FormulaState>(context, listen: false);
+    setState(() {
+      _formulas = formulaState.formulas;
+    });
   }
 
   Future<void> _cargarConfiguracion() async {
@@ -63,18 +77,7 @@ class _CalculadoraRollosScreenState extends State<CalculadoraRollosScreen> {
     }
   }
 
-  Future<void> _cargarFormulas() async {
-    final formulas = await DatabaseService.getAllFormulas();
-    if (mounted) {
-      setState(() {
-        _formulas = formulas;
-      });
-    }
-  }
-
   void _calcular() {
-    FocusScope.of(context).unfocus();
-
     final double? grosorCm = double.tryParse(
       _grosorController.text.replaceAll(',', '.'),
     );
@@ -92,7 +95,6 @@ class _CalculadoraRollosScreenState extends State<CalculadoraRollosScreen> {
       final estibas = cfg?.bolsasPorEstibaPorFormato ?? bolsasPorEstibaPorFormato;
       final diametro = cfg?.diametroNucleoCm ?? diametroNucleoCm;
       final calibre = cfg?.calibrePlasticoMicras ?? calibrePlasticoMicras;
-      final recorrido = cfg?.recorridoBultos ?? 20;
 
       final int bolsasPorEstibaActual = estibas[_formatoSeleccionado]!;
 
@@ -105,9 +107,17 @@ class _CalculadoraRollosScreenState extends State<CalculadoraRollosScreen> {
         calibrePlasticoMicras: calibre,
       );
 
-      final int numBolsasBase = resultados['numeroBolsas']!;
-      final int totalBolsas = numBolsasBase + recorrido;
+      final int totalBolsas = resultados['numeroBolsas']!;
       final double kgTotales = totalBolsas * _formatoSeleccionado.toDouble();
+
+      // --- Cálculo del Peso del Rollo (Fisico) ---
+      // Peso = Volumen * Densidad. Densidad PE ~ 0.92 g/cm3
+      final double rCore = diametro / 2.0;
+      final double rTotal = rCore + grosorCm;
+      final double areaTransversal = pi * (pow(rTotal, 2) - pow(rCore, 2));
+      final double ancho = cfg?.anchosPorFormato[_formatoSeleccionado] ?? 45.0;
+      final double volumenCm3 = areaTransversal * ancho;
+      final double pesoRolloKg = (volumenCm3 * 0.92) / 1000.0;
 
       // --- Integración con fórmula ---
       int? cargasCompletas;
@@ -131,6 +141,7 @@ class _CalculadoraRollosScreenState extends State<CalculadoraRollosScreen> {
         _resultadoEstibas = totalBolsas ~/ bolsasPorEstibaActual;
         _resultadoBultosAdicionales = totalBolsas % bolsasPorEstibaActual;
         _bolsasPorEstibaActual = bolsasPorEstibaActual;
+        _resultadoPesoRollo = pesoRolloKg;
         _mensajeError = '';
         _kgTotales = kgTotales;
         _cargasCompletas = cargasCompletas;
@@ -146,6 +157,7 @@ class _CalculadoraRollosScreenState extends State<CalculadoraRollosScreen> {
 
   void _onFormatoChanged(int? newValue) {
     if (newValue != null) {
+      PreferenciasService.formatoRollos = newValue;
       setState(() {
         _formatoSeleccionado = newValue;
         _mensajeError = '';
@@ -162,6 +174,7 @@ class _CalculadoraRollosScreenState extends State<CalculadoraRollosScreen> {
   void _limpiarDatos() {
     setState(() {
       _grosorController.clear();
+      _formulaAutoCompleteController?.clear();
       _formulaSeleccionada = null;
       _resultadoBolsas = 0;
       _resultadoEstibas = 0;
@@ -170,6 +183,7 @@ class _CalculadoraRollosScreenState extends State<CalculadoraRollosScreen> {
       _cargasCompletas = null;
       _fraccionParcial = null;
       _kgTotales = null;
+      _resultadoPesoRollo = 0.0;
       _resultadoCargaParcial = null;
     });
   }
@@ -183,36 +197,31 @@ class _CalculadoraRollosScreenState extends State<CalculadoraRollosScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
+    final formulaState = context.watch<FormulaState>();
+    final todasLasFormulas = formulaState.formulas;
+
+    // Sincronización reactiva: buscamos la versión más reciente de la fórmula seleccionada
+    // Esto evita el uso de postFrameCallback y mantiene la UI siempre al día.
+    final IsarFormula? formulaParaBuild = _formulaSeleccionada == null
+        ? null
+        : todasLasFormulas
+            .where((f) => f.id == _formulaSeleccionada!.id)
+            .firstOrNull ?? _formulaSeleccionada;
+
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          // --- Botón Limpiar + Configuración ---
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.settings, color: primaryIndustrial),
-                tooltip: 'Configuración de rollos',
-                onPressed: () async {
-                  final recargar = await Navigator.push<bool>(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const ConfiguracionRollosScreen(),
-                    ),
-                  );
-                  if (recargar == true) {
-                    await _cargarConfiguracion();
-                  }
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.clear_all, color: primaryIndustrial),
-                tooltip: 'Limpiar datos',
-                onPressed: _limpiarDatos,
-              ),
-            ],
+          // --- Botón Limpiar ---
+          Align(
+            alignment: Alignment.centerRight,
+            child: IconButton(
+              icon: const Icon(Icons.clear_all, color: primaryIndustrial),
+              tooltip: 'Limpiar datos',
+              onPressed: _limpiarDatos,
+            ),
           ),
 
           // --- 1. Formato ---
@@ -295,6 +304,7 @@ class _CalculadoraRollosScreenState extends State<CalculadoraRollosScreen> {
               });
             },
             fieldViewBuilder: (context, controller, focusNode, onSubmitted) {
+              _formulaAutoCompleteController = controller;
               return TextField(
                 controller: controller,
                 focusNode: focusNode,
@@ -302,7 +312,7 @@ class _CalculadoraRollosScreenState extends State<CalculadoraRollosScreen> {
                 decoration: InputDecoration(
                   hintText: 'Buscar referencia...',
                   border: const OutlineInputBorder(),
-                  suffixIcon: _formulaSeleccionada != null
+                  suffixIcon: formulaParaBuild != null
                       ? IconButton(
                           icon: const Icon(Icons.clear),
                           onPressed: () {
@@ -341,7 +351,17 @@ class _CalculadoraRollosScreenState extends State<CalculadoraRollosScreen> {
                                   : Colors.grey,
                             ),
                           ),
-                          onTap: () => onSelected(formula),
+                          onTap: () async {
+                            final refresh = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const ConfiguracionRollosScreen()),
+                            );
+                            if (refresh == true) {
+                              _cargarConfiguracion();
+                            }
+                            onSelected(formula);
+                          },
                         );
                       },
                     ),
@@ -351,13 +371,13 @@ class _CalculadoraRollosScreenState extends State<CalculadoraRollosScreen> {
             },
           ),
 
-          if (_formulaSeleccionada != null)
+          if (formulaParaBuild != null)
             Padding(
               padding: const EdgeInsets.only(top: 8.0),
               child: Chip(
                 avatar: const Icon(Icons.check_circle, color: Colors.green),
                 label: Text(
-                  'Fórmula: ${_formulaSeleccionada!.referencia} · Base: ${_formulaSeleccionada!.pesoBaseKg?.toStringAsFixed(0)} kg',
+                  'Fórmula: ${formulaParaBuild.referencia} · Base: ${formulaParaBuild.pesoBaseKg?.toStringAsFixed(0)} kg',
                 ),
                 backgroundColor: Colors.green.shade50,
               ),
@@ -421,6 +441,14 @@ class _CalculadoraRollosScreenState extends State<CalculadoraRollosScreen> {
             subtitle: '(Residuo de bolsas que no completan la estiba)',
             value: _resultadoBultosAdicionales,
             color: Colors.orange,
+          ),
+          _ResultadoCard(
+            title: 'Peso Estimado del Rollo',
+            subtitle: '(Basado en grosor, ancho y densidad de 0.92 g/cm³)',
+            value: _resultadoPesoRollo,
+            color: Colors.teal,
+            isDecimal: true,
+            unit: ' kg',
           ),
 
           // --- Sección de integración con fórmula ---
@@ -533,50 +561,33 @@ class _CalculadoraRollosScreenState extends State<CalculadoraRollosScreen> {
           const SizedBox(height: 10),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   List<Widget> _buildIngredientesParciales() {
     final resultados = _resultadoCargaParcial!;
     final List<Widget> items = [];
 
-    // Arena Amarilla (Silo 1 y Silo 2) — clave: 'arena_amarilla_detalle'
-    final arenaDetalle = resultados['arena_amarilla_detalle'] as List<Map<String, dynamic>>?;
-    if (arenaDetalle != null) {
-      for (var d in arenaDetalle) {
-        items.add(_ingredienteRow(
-          'Arena Amarilla (${d['origen']})',
-          d['cantidad'] as double,
-          Colors.amber.shade700,
-        ));
+    // 1. Materias Primas Principales (Dinámicas)
+    final principalesDetalle = resultados['materiales_principales_detalle'] as List<Map<String, dynamic>>?;
+    if (principalesDetalle != null) {
+      for (var d in principalesDetalle) {
+        final nombre = d['origen'] as String;
+        Color color = Colors.amber.shade700; // Por defecto
+        
+        // Intentar asignar color por palabras clave para mantener estética
+        if (nombre.toLowerCase().contains('cemento')) {
+          color = Colors.grey.shade600;
+        } else if (nombre.toLowerCase().contains('blanca')) {
+          color = Colors.lightBlue.shade400;
+        }
+
+        items.add(_ingredienteRow(nombre, d['cantidad'] as double, color));
       }
     }
 
-    // Arena Blanca — clave: 'arena_blanca_detalle'
-    final arenaBlancaDetalle = resultados['arena_blanca_detalle'] as List<Map<String, dynamic>>?;
-    if (arenaBlancaDetalle != null) {
-      for (var d in arenaBlancaDetalle) {
-        items.add(_ingredienteRow(
-          'Arena Blanca (${d['origen']})',
-          d['cantidad'] as double,
-          Colors.lightBlue.shade400,
-        ));
-      }
-    }
-
-    // Cemento — clave: 'cemento_detalle'
-    final cementoDetalle = resultados['cemento_detalle'] as List<Map<String, dynamic>>?;
-    if (cementoDetalle != null) {
-      for (var d in cementoDetalle) {
-        items.add(_ingredienteRow(
-          'Cemento (${d['origen']})',
-          d['cantidad'] as double,
-          Colors.grey.shade600,
-        ));
-      }
-    }
-
-    // Aditivos — clave: 'aditivos_lista'
+    // 2. Aditivos
     final aditivos = resultados['aditivos_lista'] as List<Map<String, dynamic>>?;
     if (aditivos != null) {
       for (var a in aditivos) {
@@ -627,14 +638,18 @@ class _CalculadoraRollosScreenState extends State<CalculadoraRollosScreen> {
 class _ResultadoCard extends StatelessWidget {
   final String title;
   final String subtitle;
-  final int value;
+  final dynamic value;
   final MaterialColor color;
+  final bool isDecimal;
+  final String unit;
 
   const _ResultadoCard({
     required this.title,
     required this.subtitle,
     required this.value,
     required this.color,
+    this.isDecimal = false,
+    this.unit = '',
   });
 
   @override
@@ -651,7 +666,9 @@ class _ResultadoCard extends StatelessWidget {
             Text(subtitle, style: const TextStyle(fontSize: 12, color: Colors.grey)),
             const SizedBox(height: 5),
             Text(
-              value.toString(),
+              isDecimal 
+                ? '${(value as double).toStringAsFixed(2)}$unit'
+                : '$value$unit',
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,

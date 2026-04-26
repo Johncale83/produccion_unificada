@@ -1,186 +1,221 @@
 // Archivo: lib/main.dart
 
-import 'package:flutter/services.dart';
-import 'package:flutter/material.dart';
-import 'calculadora_rollos_screen.dart';
-import 'calculadora_proporciones_screen.dart';
-import 'constants.dart';
+// Vamos a explicar cada línea de este archivo de manera sencilla, para alguien que está aprendiendo Flutter y programación en general.
 
-import 'package:produccion_unificada/services/database_service.dart';
-import 'package:produccion_unificada/screens/gestor_formulas_screen.dart';
+// Las siguientes líneas son "importaciones". Sirven para decirle al proyecto qué herramientas y archivos va a usar más adelante:
+import 'package:flutter/services.dart'; // Permite realizar tareas con el sistema, como cerrar la app.
+import 'package:flutter/material.dart';  // Importa todo lo necesario para hacer apps con Material Design.
+import 'package:provider/provider.dart'; // Importa Provider, una herramienta para manejar el estado (datos que cambian).
+import 'package:produccion_unificada/screens/calculadora_rollos_screen.dart';
+import 'package:produccion_unificada/screens/calculadora_proporciones_screen.dart';
+import 'package:produccion_unificada/constants.dart';
 
+import 'package:produccion_unificada/services/database_service.dart';       // Servicio para la base de datos de la app.
+import 'package:produccion_unificada/services/preferencias_service.dart';   // Servicio que maneja las preferencias del usuario.
+import 'package:produccion_unificada/services/formula_state.dart';          // Aquí está la gestión de las fórmulas.
+import 'package:produccion_unificada/screens/gestor_formulas_screen.dart';  // Pantalla para ver/agregar fórmulas.
+import 'package:produccion_unificada/screens/configuracion_rollos_screen.dart'; // Pantalla para configuración de rollos.
+import 'package:produccion_unificada/screens/gestor_aditivos_screen.dart';      // Pantalla para gestionar aditivos.
+
+// Esta es la función principal, el punto de inicio de toda aplicación Flutter.
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await DatabaseService.init();
-  runApp(const AplicacionUnificada());
+  WidgetsFlutterBinding.ensureInitialized(); // Esto asegura que todo esté listo antes de iniciar la app.
+  await DatabaseService.init();  // Inicializamos el servicio de base de datos (preparamos y abrimos la base de datos).
+  await PreferenciasService.init(); // Cargamos las preferencias del usuario almacenadas.
+  await formulaState.cargarFormulas(); // Cargamos todas las fórmulas que hay almacenadas.
+  runApp(const AplicacionUnificada()); // Aquí se inicia la app mostrando el widget principal.
 }
 
+// La siguiente clase representa la app principal.
 class AplicacionUnificada extends StatelessWidget {
   const AplicacionUnificada({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Calculadora de Producción',
-      theme: ThemeData(
-        primarySwatch: primaryIndustrial,
-        scaffoldBackgroundColor: Colors.white,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: primaryIndustrial,
-          foregroundColor: Colors.white,
-          elevation: 0,
+    // Aquí le decimos a Flutter cómo debe lucir y comportarse la app.
+    // ChangeNotifierProvider permite que partes de la app reaccionen cuando cambian las fórmulas.
+    return ChangeNotifierProvider.value(
+      value: formulaState,
+      child: MaterialApp(
+        title: 'Calculadora de Producción', // Nombre que puede usarse en el sistema operativo.
+        theme: ThemeData(
+          primarySwatch: primaryIndustrial,             // Color principal de la app, definido en constants.dart.
+          scaffoldBackgroundColor: Colors.white,         // Fondo principal en blanco.
+          appBarTheme: const AppBarTheme(                // Configuración para las barras superiores.
+            backgroundColor: primaryIndustrial,          // Color de fondo.
+            foregroundColor: Colors.white,               // Color del texto y los íconos.
+            elevation: 0,                                // Sin sombra debajo de la barra.
+          ),
+          visualDensity: VisualDensity.adaptivePlatformDensity, // Ajusta el tamaño visual según el dispositivo.
         ),
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+        home: const HomeScreen(),            // Pantalla inicial de la app.
+        debugShowCheckedModeBanner: false,   // Quita la franja "Debug" roja al lado de la pantalla.
       ),
-      home: const HomeScreen(),
-      // Oculta la franja roja de debug
-      debugShowCheckedModeBanner: false,
     );
   }
 }
 
-class HomeScreen extends StatelessWidget {
+// Este widget es la pantalla principal que verá el usuario.
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+// Este es el estado de la pantalla principal. Controla, por ejemplo, qué pestaña está activa.
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController; // Controla las pestañas.
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this); // Crea dos pestañas ("Proporciones" y "Rollos").
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose(); // Libera el controlador cuando no se necesita más.
+    super.dispose();
+  }
+
+  // Aquí se define cómo se debe ver toda la pantalla principal.
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Calculadora de Producción'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.sync),
-            tooltip: 'Forzar Sincronización de Base de Datos',
-            onPressed: () async {
-              await DatabaseService.seedInitialData();
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Sincronización de Base de Datos Completada'),
-                  ),
-                );
+    return Scaffold( // Estructura básica de una pantalla en Flutter.
+      appBar: AppBar( // Barra superior de la app.
+        title: const Text('Calculadora de Producción'), // Título mostrado en la barra.
+        bottom: TabBar( // Aquí agregamos las pestañas.
+          controller: _tabController,     // Controlador de las pestañas.
+          indicatorColor: Colors.amber,   // Color de la línea bajo la pestaña activa.
+          labelColor: Colors.white,       // Color del texto en la pestaña activa.
+          unselectedLabelColor: Colors.white70, // Color de texto en pestañas inactivas.
+          tabs: const [
+            Tab(icon: Icon(Icons.science), text: 'Proporciones'), // Primera pestaña.
+            Tab(icon: Icon(Icons.inventory_2), text: 'Rollos'),   // Segunda pestaña.
+          ],
+        ),
+        actions: [ // Botones que aparecen a la derecha de la AppBar.
+          PopupMenuButton<String>( // Botón de menú con varias opciones.
+            icon: const Icon(Icons.settings),
+            tooltip: 'Configuración y Gestores',
+            onSelected: (value) async { // Qué hacer cuando eliges una opción del menú.
+              switch (value) {
+                case 'formulas':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const GestorFormulasScreen()),
+                  );
+                  break;
+                case 'rollos':
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ConfiguracionRollosScreen()),
+                  );
+                  break;
+                case 'aditivos':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const GestorAditivosScreen()),
+                  );
+                  break;
+                case 'sync':
+                  // Sincronización: Recarga de datos desde un origen principal (por ejemplo, reiniciar datos por defecto).
+                  final confirmar = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Confirmar Sincronización'),
+                      content: const Text(
+                        'Esta acción sobrescribirá todas las fórmulas actuales con los datos predeterminados. '
+                        'Se perderán los cambios manuales que no hayan sido exportados. '
+                        '¿Desea continuar?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancelar'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                          child: const Text(
+                            'Sincronizar',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (confirmar != true) break;
+
+                  final count = await DatabaseService.seedInitialData(force: true);
+                  await formulaState.cargarFormulas();
+                  // Si sigue en pantalla, muestra mensaje que terminó la sincronización y cuántos datos hay.
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Sincronización Completada. Fórmulas en BD: $count'),
+                      ),
+                    );
+                  }
+                  break;
               }
             },
+            // Estas son las opciones que aparecen al desplegar el menú.
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'formulas',
+                child: ListTile(
+                  leading: Icon(Icons.list_alt, color: Colors.indigo),
+                  title: Text('Gestor de Fórmulas'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'aditivos',
+                child: ListTile(
+                  leading: Icon(Icons.category, color: Colors.orange),
+                  title: Text('Catálogo de Aditivos'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'rollos',
+                child: ListTile(
+                  leading: Icon(Icons.settings_applications, color: Colors.teal),
+                  title: Text('Ajustes de Rollos'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuDivider(), // Línea separadora en el menú
+              const PopupMenuItem(
+                value: 'sync',
+                child: ListTile(
+                  leading: Icon(Icons.sync, color: Colors.blue),
+                  title: Text('Sincronizar Datos'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
           ),
           IconButton(
             icon: const Icon(Icons.exit_to_app),
             tooltip: 'Salir',
             onPressed: () {
-              SystemNavigator.pop();
+              SystemNavigator.pop(); // Al presionar, se cierra la aplicación.
             },
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 8), // Espacio pequeño al final de la barra.
         ],
       ),
-      body: const SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _CollapsibleSection(
-              title: 'Proporciones de Materiales',
-              icon: Icons.science,
-              initiallyExpanded: true,
-              child: CalculadoraProporcionesScreen(),
-            ),
-            Divider(thickness: 2, height: 2),
-            _CollapsibleSection(
-              title: 'Calculadora de Rollos',
-              icon: Icons.inventory_2,
-              initiallyExpanded: false,
-              child: CalculadoraRollosScreen(),
-            ),
-          ],
-        ),
+      body: TabBarView( // Aquí se muestran los contenidos de cada pestaña.
+        controller: _tabController,
+        children: const [
+          CalculadoraProporcionesScreen(), // Pantalla para calcular proporciones.
+          CalculadoraRollosScreen(),       // Pantalla para calcular rollos.
+        ],
       ),
-      floatingActionButton: Builder(
-        builder: (context) {
-          return FloatingActionButton.extended(
-            backgroundColor: primaryIndustrial,
-            foregroundColor: Colors.white,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const GestorFormulasScreen(),
-                ),
-              );
-            },
-            icon: const Icon(Icons.list_alt),
-            label: const Text('Gestor de Fórmulas'),
-          );
-        },
-      ),
-    );
-  }
-}
-
-// === Widget personalizado que mantiene el estado al colapsar ===
-class _CollapsibleSection extends StatefulWidget {
-  final String title;
-  final IconData icon;
-  final Widget child;
-  final bool initiallyExpanded;
-
-  const _CollapsibleSection({
-    required this.title,
-    required this.icon,
-    required this.child,
-    this.initiallyExpanded = true,
-  });
-
-  @override
-  State<_CollapsibleSection> createState() => _CollapsibleSectionState();
-}
-
-class _CollapsibleSectionState extends State<_CollapsibleSection> {
-  late bool _expanded;
-
-  @override
-  void initState() {
-    super.initState();
-    _expanded = widget.initiallyExpanded;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        InkWell(
-          onTap: () => setState(() => _expanded = !_expanded),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            color: const Color(0xFFEEF0FF),
-            child: Row(
-              children: [
-                Icon(widget.icon, color: primaryIndustrial, size: 22),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    widget.title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: primaryIndustrial,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-                Icon(
-                  _expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                  color: primaryIndustrial,
-                ),
-              ],
-            ),
-          ),
-        ),
-        // Visibility(maintainState: true) mantiene el widget vivo en el arbol
-        // aunque no sea visible → el estado (resultados, formula, etc.) se preserva
-        Visibility(
-          maintainState: true,
-          visible: _expanded,
-          child: widget.child,
-        ),
-      ],
     );
   }
 }

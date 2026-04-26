@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import '../services/database_service.dart';
-import '../models/isar_formula.dart';
-import '../constants.dart';
+import 'package:provider/provider.dart';
+import 'package:produccion_unificada/services/database_service.dart';
+import 'package:produccion_unificada/models/isar_formula.dart';
+import 'package:produccion_unificada/services/formula_state.dart';
+import 'package:produccion_unificada/constants.dart';
 
 class GestorAditivosScreen extends StatefulWidget {
   const GestorAditivosScreen({super.key});
@@ -12,6 +14,8 @@ class GestorAditivosScreen extends StatefulWidget {
 
 class _GestorAditivosScreenState extends State<GestorAditivosScreen> {
   final TextEditingController _nuevoAditivoController = TextEditingController();
+  final TextEditingController _nuevoOrigenController = TextEditingController();
+  final TextEditingController _nuevoPesoBultoController = TextEditingController(text: '25.0');
   List<IsarCatalogoAditivo> _aditivos = [];
   bool _isLoading = true;
 
@@ -34,16 +38,86 @@ class _GestorAditivosScreenState extends State<GestorAditivosScreen> {
 
   Future<void> _agregarAditivo() async {
     final nombre = _nuevoAditivoController.text.trim();
+    final origen = _nuevoOrigenController.text.trim();
+    final peso = double.tryParse(_nuevoPesoBultoController.text.trim()) ?? 25.0;
+
     if (nombre.isEmpty) return;
 
-    await DatabaseService.addAditivoCatalogo(nombre);
+    await DatabaseService.addAditivoCatalogo(
+      nombre, 
+      origen: origen.isEmpty ? null : origen,
+      pesoBulto: peso,
+    );
     _nuevoAditivoController.clear();
+    _nuevoOrigenController.clear();
+    _nuevoPesoBultoController.text = '25.0';
+    
+    // IMPORTANTE: Refrescar el estado global para que la calculadora y otros lo vean
+    if (mounted) {
+      await Provider.of<FormulaState>(context, listen: false).cargarFormulas();
+    }
     await _cargarAditivos();
     
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Aditivo "$nombre" agregado al catálogo.')),
       );
+    }
+  }
+
+  Future<void> _editarAditivo(IsarCatalogoAditivo aditivo) async {
+    final nombreController = TextEditingController(text: aditivo.nombre);
+    final origenController = TextEditingController(text: aditivo.origen);
+    final pesoController = TextEditingController(text: (aditivo.pesoBulto ?? 25.0).toString());
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Editar Aditivo'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nombreController,
+              decoration: const InputDecoration(labelText: 'Nombre'),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: origenController,
+              decoration: const InputDecoration(labelText: 'Ubicación/Tolva'),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: pesoController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(labelText: 'Peso por bulto (Kg)', suffixText: 'kg'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      await DatabaseService.updateAditivoCatalogo(
+        aditivo.id,
+        nombreController.text,
+        origenController.text,
+        double.tryParse(pesoController.text) ?? 25.0,
+      );
+      if (mounted) {
+        await Provider.of<FormulaState>(context, listen: false).cargarFormulas();
+      }
+      await _cargarAditivos();
     }
   }
 
@@ -69,6 +143,9 @@ class _GestorAditivosScreenState extends State<GestorAditivosScreen> {
 
     if (confirm == true) {
       await DatabaseService.deleteAditivoCatalogo(aditivo.id);
+      if (mounted) {
+        await Provider.of<FormulaState>(context, listen: false).cargarFormulas();
+      }
       await _cargarAditivos();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -81,6 +158,8 @@ class _GestorAditivosScreenState extends State<GestorAditivosScreen> {
   @override
   void dispose() {
     _nuevoAditivoController.dispose();
+    _nuevoOrigenController.dispose();
+    _nuevoPesoBultoController.dispose();
     super.dispose();
   }
 
@@ -97,28 +176,60 @@ class _GestorAditivosScreenState extends State<GestorAditivosScreen> {
           Container(
             padding: const EdgeInsets.all(16.0),
             color: Colors.grey[100],
-            child: Row(
+            child: Column(
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: _nuevoAditivoController,
-                    decoration: const InputDecoration(
-                      labelText: 'Nombre del nuevo aditivo',
-                      hintText: 'Ej: Wekcelo HD',
-                      border: OutlineInputBorder(),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: TextField(
+                        controller: _nuevoAditivoController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nombre del aditivo',
+                          hintText: 'Ej: Wekcelo HD',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
                     ),
-                    onSubmitted: (_) => _agregarAditivo(),
-                  ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      flex: 2,
+                      child: TextField(
+                        controller: _nuevoOrigenController,
+                        decoration: const InputDecoration(
+                          labelText: 'Ubicación',
+                          hintText: 'Ej: Silo 10',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      flex: 1,
+                      child: TextField(
+                        controller: _nuevoPesoBultoController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        decoration: const InputDecoration(
+                          labelText: 'Kg/Bulto',
+                          border: OutlineInputBorder(),
+                        ),
+                        onSubmitted: (_) => _agregarAditivo(),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  onPressed: _agregarAditivo,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Añadir'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryIndustrial,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _agregarAditivo,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Añadir al Catálogo Global'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryIndustrial,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
                   ),
                 ),
               ],
@@ -146,10 +257,26 @@ class _GestorAditivosScreenState extends State<GestorAditivosScreen> {
                               aditivo.nombre ?? 'Sin nombre',
                               style: const TextStyle(fontWeight: FontWeight.bold),
                             ),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => _eliminarAditivo(aditivo),
-                              tooltip: 'Eliminar del catálogo',
+                            subtitle: Text(
+                              (aditivo.nombre?.toUpperCase().contains('AGLOMERANTE') ?? false) || (aditivo.origen?.toUpperCase().contains('PDF') ?? false)
+                                  ? (aditivo.origen ?? 'Sin ubicación')
+                                  : '${aditivo.origen ?? 'Sin ubicación'} • ${aditivo.pesoBulto ?? 25.0} kg/bulto',
+                              style: TextStyle(color: Colors.grey[600]),
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit, color: Colors.indigo),
+                                  onPressed: () => _editarAditivo(aditivo),
+                                  tooltip: 'Editar aditivo',
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.pink),
+                                  onPressed: () => _eliminarAditivo(aditivo),
+                                  tooltip: 'Eliminar del catálogo',
+                                ),
+                              ],
                             ),
                           );
                         },

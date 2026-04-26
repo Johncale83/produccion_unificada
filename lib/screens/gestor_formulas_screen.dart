@@ -1,11 +1,13 @@
 // Gestor de Fórmulas Screen
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:produccion_unificada/models/isar_formula.dart';
 import 'package:produccion_unificada/services/database_service.dart';
 import 'package:produccion_unificada/services/backup_service.dart';
+import 'package:produccion_unificada/services/formula_state.dart';
 import 'package:produccion_unificada/screens/agregar_formula_screen.dart';
-import 'gestor_aditivos_screen.dart';
-import '../constants.dart';
+import 'package:produccion_unificada/screens/gestor_aditivos_screen.dart';
+import 'package:produccion_unificada/constants.dart';
 
 class GestorFormulasScreen extends StatefulWidget {
   const GestorFormulasScreen({super.key});
@@ -14,26 +16,20 @@ class GestorFormulasScreen extends StatefulWidget {
   State<GestorFormulasScreen> createState() => _GestorFormulasScreenState();
 }
 
-class _GestorFormulasScreenState extends State<GestorFormulasScreen> {
-  List<IsarFormula> _formulas = [];
-  bool _isLoading = true;
+class _GestorFormulasScreenState extends State<GestorFormulasScreen> with SingleTickerProviderStateMixin {
   String _searchQuery = '';
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    _cargarFormulas();
+    _tabController = TabController(length: 2, vsync: this);
   }
 
-  Future<void> _cargarFormulas() async {
-    setState(() {
-      _isLoading = true;
-    });
-    final formulas = await DatabaseService.getAllFormulas();
-    setState(() {
-      _formulas = formulas;
-      _isLoading = false;
-    });
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   Future<void> _eliminarFormula(IsarFormula formula) async {
@@ -63,11 +59,19 @@ class _GestorFormulasScreenState extends State<GestorFormulasScreen> {
     );
 
     if (confirmar == true) {
-      await DatabaseService.deleteFormula(formula.id);
-      _cargarFormulas(); // Recargar la lista
+      final formulaEliminada = formula;
+      await formulaState.eliminarFormula(formula.id);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fórmula ${formula.referencia} eliminada')),
+          SnackBar(
+            content: Text('Fórmula ${formula.referencia} eliminada'),
+            action: SnackBarAction(
+              label: 'Deshacer',
+              onPressed: () async {
+                await formulaState.agregarFormula(formulaEliminada);
+              },
+            ),
+          ),
         );
       }
     }
@@ -80,8 +84,6 @@ class _GestorFormulasScreenState extends State<GestorFormulasScreen> {
         builder: (context) => AgregarFormulaScreen(formulaAEditar: formula),
       ),
     );
-    // Recargar al regresar por si hubieron cambios
-    _cargarFormulas();
   }
 
   Future<void> _exportarBackup() async {
@@ -109,12 +111,11 @@ class _GestorFormulasScreenState extends State<GestorFormulasScreen> {
     
     if (!mounted) return;
     if (jsonStr != null && jsonStr.isNotEmpty) {
-      setState(() => _isLoading = true);
       try {
         final procesados = await DatabaseService.importarDatosJson(
           jsonStr,
         );
-        await _cargarFormulas();
+        await formulaState.cargarFormulas();
         
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -127,7 +128,6 @@ class _GestorFormulasScreenState extends State<GestorFormulasScreen> {
         );
       } catch (e) {
         if (!mounted) return;
-        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al importar: $e'),
@@ -140,115 +140,119 @@ class _GestorFormulasScreenState extends State<GestorFormulasScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
+    final fState = context.watch<FormulaState>();
+    final formulas = fState.formulas;
+    final isLoading = fState.isLoading;
+
+    if (isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final sq = _searchQuery.toLowerCase();
     
-    final grises = _formulas.where((f) => 
+    final grises = formulas.where((f) => 
       f.esBlanca == false && 
       (f.referencia?.toLowerCase().contains(sq) ?? false)
     ).toList();
     
-    final blancas = _formulas.where((f) => 
+    final blancas = formulas.where((f) => 
       f.esBlanca == true && 
       (f.referencia?.toLowerCase().contains(sq) ?? false)
     ).toList();
 
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Gestor de Fórmulas'),
-          backgroundColor: primaryIndustrial,
-          foregroundColor: Colors.white,
-          actions: [
-            PopupMenuButton<String>(
-              onSelected: (value) async {
-                if (value == 'exportar') {
-                  await _exportarBackup();
-                } else if (value == 'importar') {
-                  await _importarBackup();
-                } else if (value == 'aditivos') {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const GestorAditivosScreen(),
-                    ),
-                  );
-                }
-              },
-              itemBuilder: (BuildContext context) {
-                return [
-                  const PopupMenuItem(
-                    value: 'exportar',
-                    child: ListTile(
-                      leading: Icon(Icons.upload_file),
-                      title: Text('Exportar Backup'),
-                    ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Gestor de Fórmulas'),
+        backgroundColor: primaryIndustrial,
+        foregroundColor: Colors.white,
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) async {
+              if (value == 'exportar') {
+                await _exportarBackup();
+              } else if (value == 'importar') {
+                await _importarBackup();
+              } else if (value == 'aditivos') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const GestorAditivosScreen(),
                   ),
-                  const PopupMenuItem(
-                    value: 'importar',
-                    child: ListTile(
-                      leading: Icon(Icons.download),
-                      title: Text('Restaurar Backup'),
-                    ),
+                );
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              return [
+                const PopupMenuItem(
+                  value: 'exportar',
+                  child: ListTile(
+                    leading: Icon(Icons.upload_file),
+                    title: Text('Exportar Backup'),
                   ),
-                  const PopupMenuItem(
-                    value: 'aditivos',
-                    child: ListTile(
-                      leading: Icon(Icons.science),
-                      title: Text('Gestionar Aditivos'),
-                    ),
-                  ),
-                ];
-              },
-            ),
-          ],
-          bottom: const TabBar(
-            indicatorColor: Colors.amber,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
-            tabs: [Tab(text: 'Fórmulas Grises'), Tab(text: 'Fórmulas Blancas')],
-          ),
-        ),
-        body: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: TextField(
-                decoration: InputDecoration(
-                  labelText: 'Buscar Referencia',
-                  hintText: 'Ej. 901...',
-                  prefixIcon: const Icon(Icons.search, color: primaryIndustrial),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
                 ),
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                  });
-                },
-              ),
-            ),
-            Expanded(
-              child: TabBarView(
-                children: [_buildListaFormulas(grises), _buildListaFormulas(blancas)],
-              ),
-            ),
-          ],
+                const PopupMenuItem(
+                  value: 'importar',
+                  child: ListTile(
+                    leading: Icon(Icons.download),
+                    title: Text('Restaurar Backup'),
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'aditivos',
+                  child: ListTile(
+                    leading: Icon(Icons.science),
+                    title: Text('Gestionar Aditivos'),
+                  ),
+                ),
+              ];
+            },
+          ),
+        ],
+        bottom: TabBar(
+          indicatorColor: Colors.amber,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          controller: _tabController,
+          tabs: const [Tab(text: 'Fórmulas Grises'), Tab(text: 'Fórmulas Blancas')],
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          backgroundColor: primaryIndustrial,
-          foregroundColor: Colors.white,
-          onPressed: () => _navegarAEdicion(), // Null = Crear nueva
-          icon: const Icon(Icons.add),
-          label: const Text('Nueva Fórmula'),
-        ),
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: TextField(
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Buscar Referencia',
+                hintText: 'Ej. 901...',
+                prefixIcon: const Icon(Icons.search, color: primaryIndustrial),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [_buildListaFormulas(grises), _buildListaFormulas(blancas)],
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: primaryIndustrial,
+        foregroundColor: Colors.white,
+        onPressed: () => _navegarAEdicion(),
+        icon: const Icon(Icons.add),
+        label: const Text('Nueva Fórmula'),
       ),
     );
   }

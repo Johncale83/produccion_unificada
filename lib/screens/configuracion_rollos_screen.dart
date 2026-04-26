@@ -2,8 +2,8 @@
 // Pantalla de configuración para editar los parámetros de la calculadora de rollos.
 
 import 'package:flutter/material.dart';
-import '../constants.dart';
-import '../services/configuracion_rollos_service.dart';
+import 'package:produccion_unificada/constants.dart';
+import 'package:produccion_unificada/services/configuracion_rollos_service.dart';
 
 class ConfiguracionRollosScreen extends StatefulWidget {
   const ConfiguracionRollosScreen({super.key});
@@ -20,19 +20,27 @@ class _ConfiguracionRollosScreenState
   // Controladores para campos generales
   final _diametroController = TextEditingController();
   final _calibreController = TextEditingController();
-  final _recorridoController = TextEditingController();
 
   // Controladores para longitudes de bolsa por formato
+  final _long10Controller = TextEditingController();
   final _long20Controller = TextEditingController();
   final _long25Controller = TextEditingController();
   final _long30Controller = TextEditingController();
   final _long40Controller = TextEditingController();
 
   // Controladores para bolsas por estiba
+  final _estiba10Controller = TextEditingController();
   final _estiba20Controller = TextEditingController();
   final _estiba25Controller = TextEditingController();
   final _estiba30Controller = TextEditingController();
   final _estiba40Controller = TextEditingController();
+
+  // Controladores para anchos por formato
+  final _ancho10Controller = TextEditingController();
+  final _ancho20Controller = TextEditingController();
+  final _ancho25Controller = TextEditingController();
+  final _ancho30Controller = TextEditingController();
+  final _ancho40Controller = TextEditingController();
 
   bool _loading = true;
 
@@ -47,11 +55,13 @@ class _ConfiguracionRollosScreenState
     setState(() {
       _diametroController.text = config.diametroNucleoCm.toString();
       _calibreController.text = config.calibrePlasticoMicras.toString();
-      _recorridoController.text = config.recorridoBultos.toString();
+      _long10Controller.text = config.longitudesPorFormato[10]!.toString();
       _long20Controller.text = config.longitudesPorFormato[20]!.toString();
       _long25Controller.text = config.longitudesPorFormato[25]!.toString();
       _long30Controller.text = config.longitudesPorFormato[30]!.toString();
       _long40Controller.text = config.longitudesPorFormato[40]!.toString();
+      _estiba10Controller.text =
+          config.bolsasPorEstibaPorFormato[10]!.toString();
       _estiba20Controller.text =
           config.bolsasPorEstibaPorFormato[20]!.toString();
       _estiba25Controller.text =
@@ -60,6 +70,11 @@ class _ConfiguracionRollosScreenState
           config.bolsasPorEstibaPorFormato[30]!.toString();
       _estiba40Controller.text =
           config.bolsasPorEstibaPorFormato[40]!.toString();
+      _ancho10Controller.text = config.anchosPorFormato[10]!.toString();
+      _ancho20Controller.text = config.anchosPorFormato[20]!.toString();
+      _ancho25Controller.text = config.anchosPorFormato[25]!.toString();
+      _ancho30Controller.text = config.anchosPorFormato[30]!.toString();
+      _ancho40Controller.text = config.anchosPorFormato[40]!.toString();
       _loading = false;
     });
   }
@@ -71,18 +86,26 @@ class _ConfiguracionRollosScreenState
           double.parse(_diametroController.text.replaceAll(',', '.')),
       calibrePlasticoMicras:
           double.parse(_calibreController.text.replaceAll(',', '.')),
-      recorridoBultos: int.parse(_recorridoController.text),
       longitudesPorFormato: {
+        10: double.parse(_long10Controller.text.replaceAll(',', '.')),
         20: double.parse(_long20Controller.text.replaceAll(',', '.')),
         25: double.parse(_long25Controller.text.replaceAll(',', '.')),
         30: double.parse(_long30Controller.text.replaceAll(',', '.')),
         40: double.parse(_long40Controller.text.replaceAll(',', '.')),
       },
       bolsasPorEstibaPorFormato: {
+        10: int.parse(_estiba10Controller.text),
         20: int.parse(_estiba20Controller.text),
         25: int.parse(_estiba25Controller.text),
         30: int.parse(_estiba30Controller.text),
         40: int.parse(_estiba40Controller.text),
+      },
+      anchosPorFormato: {
+        10: double.parse(_ancho10Controller.text.replaceAll(',', '.')),
+        20: double.parse(_ancho20Controller.text.replaceAll(',', '.')),
+        25: double.parse(_ancho25Controller.text.replaceAll(',', '.')),
+        30: double.parse(_ancho30Controller.text.replaceAll(',', '.')),
+        40: double.parse(_ancho40Controller.text.replaceAll(',', '.')),
       },
     );
     await ConfiguracionRollosService.guardar(config);
@@ -131,9 +154,10 @@ class _ConfiguracionRollosScreenState
   @override
   void dispose() {
     for (final c in [
-      _diametroController, _calibreController, _recorridoController,
-      _long20Controller, _long25Controller, _long30Controller, _long40Controller,
-      _estiba20Controller, _estiba25Controller, _estiba30Controller, _estiba40Controller,
+      _diametroController, _calibreController,
+      _long10Controller, _long20Controller, _long25Controller, _long30Controller, _long40Controller,
+      _estiba10Controller, _estiba20Controller, _estiba25Controller, _estiba30Controller, _estiba40Controller,
+      _ancho10Controller, _ancho20Controller, _ancho25Controller, _ancho30Controller, _ancho40Controller,
     ]) {
       c.dispose();
     }
@@ -181,11 +205,6 @@ class _ConfiguracionRollosScreenState
                 hint: 'Ej: 110',
               ),
               const SizedBox(height: 12),
-              _campoEntero(
-                controller: _recorridoController,
-                label: 'Bultos de recorrido (bolsas iniciales descontadas)',
-                hint: 'Ej: 20',
-              ),
               const SizedBox(height: 24),
 
               // ─── SECCIÓN: Longitud de bolsa por formato ───
@@ -197,16 +216,41 @@ class _ConfiguracionRollosScreenState
               ),
               const SizedBox(height: 12),
               Row(children: [
-                Expanded(child: _campoDecimal(controller: _long20Controller, label: '20 kg (cm)', hint: '58')),
+                Expanded(child: _campoDecimal(controller: _long10Controller, label: '10 kg (cm)', hint: '45')),
                 const SizedBox(width: 12),
-                Expanded(child: _campoDecimal(controller: _long25Controller, label: '25 kg (cm)', hint: '64')),
+                Expanded(child: _campoDecimal(controller: _long20Controller, label: '20 kg (cm)', hint: '58')),
               ]),
               const SizedBox(height: 12),
               Row(children: [
-                Expanded(child: _campoDecimal(controller: _long30Controller, label: '30 kg (cm)', hint: '64')),
+                Expanded(child: _campoDecimal(controller: _long25Controller, label: '25 kg (cm)', hint: '64')),
                 const SizedBox(width: 12),
-                Expanded(child: _campoDecimal(controller: _long40Controller, label: '40 kg (cm)', hint: '70')),
+                Expanded(child: _campoDecimal(controller: _long30Controller, label: '30 kg (cm)', hint: '64')),
               ]),
+              const SizedBox(height: 12),
+              _campoDecimal(controller: _long40Controller, label: '40 kg (cm)', hint: '70'),
+              const SizedBox(height: 24),
+
+              // ─── SECCIÓN: Ancho por Formato (KG Rollo) ───
+              _sectionHeader('Ancho por Formato (KG Rollo)', Icons.swap_horiz),
+              const SizedBox(height: 4),
+              const Text(
+                'Ancho físico de la película plástica para el cálculo de peso (kg).',
+                style: TextStyle(color: Colors.black54, fontSize: 12),
+              ),
+              const SizedBox(height: 12),
+              Row(children: [
+                Expanded(child: _campoDecimal(controller: _ancho10Controller, label: '10 kg (cm)', hint: '35')),
+                const SizedBox(width: 12),
+                Expanded(child: _campoDecimal(controller: _ancho20Controller, label: '20 kg (cm)', hint: '45')),
+              ]),
+              const SizedBox(height: 12),
+              Row(children: [
+                Expanded(child: _campoDecimal(controller: _ancho25Controller, label: '25 kg (cm)', hint: '45')),
+                const SizedBox(width: 12),
+                Expanded(child: _campoDecimal(controller: _ancho30Controller, label: '30 kg (cm)', hint: '45')),
+              ]),
+              const SizedBox(height: 12),
+              _campoDecimal(controller: _ancho40Controller, label: '40 kg (cm)', hint: '50'),
               const SizedBox(height: 24),
 
               // ─── SECCIÓN: Bolsas por estiba ───
@@ -218,16 +262,18 @@ class _ConfiguracionRollosScreenState
               ),
               const SizedBox(height: 12),
               Row(children: [
-                Expanded(child: _campoEntero(controller: _estiba20Controller, label: '20 kg', hint: '70')),
+                Expanded(child: _campoEntero(controller: _estiba10Controller, label: '10 kg', hint: '100')),
                 const SizedBox(width: 12),
-                Expanded(child: _campoEntero(controller: _estiba25Controller, label: '25 kg', hint: '60')),
+                Expanded(child: _campoEntero(controller: _estiba20Controller, label: '20 kg', hint: '70')),
               ]),
               const SizedBox(height: 12),
               Row(children: [
-                Expanded(child: _campoEntero(controller: _estiba30Controller, label: '30 kg', hint: '45')),
+                Expanded(child: _campoEntero(controller: _estiba25Controller, label: '25 kg', hint: '60')),
                 const SizedBox(width: 12),
-                Expanded(child: _campoEntero(controller: _estiba40Controller, label: '40 kg', hint: '35')),
+                Expanded(child: _campoEntero(controller: _estiba30Controller, label: '30 kg', hint: '45')),
               ]),
+              const SizedBox(height: 12),
+              _campoEntero(controller: _estiba40Controller, label: '40 kg', hint: '35'),
               const SizedBox(height: 32),
 
               ElevatedButton.icon(
@@ -279,6 +325,7 @@ class _ConfiguracionRollosScreenState
         hintText: hint,
         border: const OutlineInputBorder(),
       ),
+      textInputAction: TextInputAction.next,
       validator: (val) {
         if (val == null || val.isEmpty) return 'Requerido';
         if (double.tryParse(val.replaceAll(',', '.')) == null) {
@@ -302,6 +349,7 @@ class _ConfiguracionRollosScreenState
         hintText: hint,
         border: const OutlineInputBorder(),
       ),
+      textInputAction: TextInputAction.next,
       validator: (val) {
         if (val == null || val.isEmpty) return 'Requerido';
         if (int.tryParse(val) == null) return 'Número entero inválido';

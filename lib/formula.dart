@@ -6,8 +6,9 @@
 class Aditivo {
   final String nombre;
   final double cantidadKg;
+  final String? origen;
 
-  Aditivo({required this.nombre, required this.cantidadKg});
+  Aditivo({required this.nombre, required this.cantidadKg, this.origen});
 }
 
 // ----------------------------------------------------------------------
@@ -19,6 +20,7 @@ class Formula {
   final double pesoBaseKg = 2400.0;
   final double arenaAmarillaKg;
   final double arenaBlancaKg;
+  final double arenaSiliceKg;
   final double cementoKg;
 
   final List<Aditivo> aditivos;
@@ -27,6 +29,7 @@ class Formula {
     required this.referencia,
     this.arenaAmarillaKg = 0.0,
     this.arenaBlancaKg = 0.0,
+    this.arenaSiliceKg = 0.0,
     required this.cementoKg,
     required this.aditivos,
   });
@@ -76,51 +79,51 @@ List<Formula> formulasGrises = [
     referencia: '901301501', // Verificada 2025-12-13//
     arenaAmarillaKg: 2059.44,
     cementoKg: 336.0,
-    aditivos: [Aditivo(nombre: 'Wekcelo MP 150', cantidadKg: 4.56)],
+    aditivos: [Aditivo(nombre: 'WEKCELO MP 150', cantidadKg: 4.56, origen: 'Minoritario 5')],
   ),
   Formula(
     referencia: '903271501', // Verificada 2025-12-13//
     arenaAmarillaKg: 2059.44,
     cementoKg: 336.0,
-    aditivos: [Aditivo(nombre: 'Wekcelo MP 150', cantidadKg: 4.56)],
+    aditivos: [Aditivo(nombre: 'WEKCELO MP 150', cantidadKg: 4.56, origen: 'Minoritario 5')],
   ),
   Formula(
     referencia: '901311501', // Verificada 2025-12-13//
     arenaAmarillaKg: 2059.44,
     cementoKg: 336.0,
-    aditivos: [Aditivo(nombre: 'Wekcelo MP 150', cantidadKg: 4.56)],
+    aditivos: [Aditivo(nombre: 'WEKCELO MP 150', cantidadKg: 4.56, origen: 'Minoritario 5')],
   ),
   Formula(
     referencia: '902051501', // Verificada 2025-12-13//
     arenaAmarillaKg: 2059.44,
     cementoKg: 336.0,
-    aditivos: [Aditivo(nombre: 'Wekcelo MP 150', cantidadKg: 4.56)],
+    aditivos: [Aditivo(nombre: 'WEKCELO MP 150', cantidadKg: 4.56, origen: 'Minoritario 5')],
   ),
   Formula(
     referencia: '902071501', // Verificada 2025-12-13//
     arenaAmarillaKg: 2059.44,
     cementoKg: 336.0,
-    aditivos: [Aditivo(nombre: 'Wekcelo MP 150', cantidadKg: 4.56)],
+    aditivos: [Aditivo(nombre: 'WEKCELO MP 150', cantidadKg: 4.56, origen: 'Minoritario 5')],
   ),
   Formula(
     referencia: '901481501', // Verificada 2025-12-13//
     arenaAmarillaKg: 2059.44,
     cementoKg: 336.0,
-    aditivos: [Aditivo(nombre: 'Wekcelo MP 150', cantidadKg: 4.56)],
+    aditivos: [Aditivo(nombre: 'WEKCELO MP 150', cantidadKg: 4.56, origen: 'Minoritario 5')],
   ),
   Formula(
     referencia: '903201501', // Verificada 2025-12-13//
     arenaAmarillaKg: 2059.44,
     cementoKg: 336.0,
-    aditivos: [Aditivo(nombre: 'Wekcelo MP 150', cantidadKg: 4.56)],
+    aditivos: [Aditivo(nombre: 'WEKCELO MP 150', cantidadKg: 4.56, origen: 'Minoritario 5')],
   ),
   Formula(
     referencia: '901331501', // Verificada 2025-12-13//
     arenaAmarillaKg: 1918.8,
     cementoKg: 456.0,
     aditivos: [
-      Aditivo(nombre: 'Wekcelo MP 150', cantidadKg: 6.0),
-      Aditivo(nombre: 'DLP 212', cantidadKg: 19.2),
+      Aditivo(nombre: 'WEKCELO MP 150', cantidadKg: 6.0, origen: 'Minoritario 5'),
+      Aditivo(nombre: 'DLP 212', cantidadKg: 19.2, origen: 'Minoritario 4'),
     ],
   ),
   Formula(
@@ -128,8 +131,8 @@ List<Formula> formulasGrises = [
     arenaAmarillaKg: 1918.8,
     cementoKg: 456.0,
     aditivos: [
-      Aditivo(nombre: 'Wekcelo MP 150', cantidadKg: 6.0),
-      Aditivo(nombre: 'DLP 212', cantidadKg: 19.2),
+      Aditivo(nombre: 'WEKCELO MP 150', cantidadKg: 6.0, origen: 'Minoritario 5'),
+      Aditivo(nombre: 'DLP 212', cantidadKg: 19.2, origen: 'Minoritario 4'),
     ],
   ),
   Formula(
@@ -137,8 +140,8 @@ List<Formula> formulasGrises = [
     arenaAmarillaKg: 1918.8,
     cementoKg: 456.0,
     aditivos: [
-      Aditivo(nombre: 'Wekcelo MP 150', cantidadKg: 6.0),
-      Aditivo(nombre: 'DLP 212', cantidadKg: 19.2),
+      Aditivo(nombre: 'WEKCELO MP 150', cantidadKg: 6.0, origen: 'Minoritario 5'),
+      Aditivo(nombre: 'DLP 212', cantidadKg: 19.2, origen: 'Minoritario 4'),
     ],
   ),
   Formula(
@@ -146,8 +149,8 @@ List<Formula> formulasGrises = [
     arenaAmarillaKg: 1918.8,
     cementoKg: 456.0,
     aditivos: [
-      Aditivo(nombre: 'Wekcelo MP 150', cantidadKg: 6.0),
-      Aditivo(nombre: 'DLP 212', cantidadKg: 19.2),
+      Aditivo(nombre: 'WEKCELO MP 150', cantidadKg: 6.0, origen: 'Minoritario 5'),
+      Aditivo(nombre: 'DLP 212', cantidadKg: 19.2, origen: 'Minoritario 4'),
     ],
   ),
   Formula(
@@ -155,8 +158,8 @@ List<Formula> formulasGrises = [
     arenaAmarillaKg: 1918.8,
     cementoKg: 456.0,
     aditivos: [
-      Aditivo(nombre: 'Wekcelo MP 150', cantidadKg: 6.0),
-      Aditivo(nombre: 'DLP 212', cantidadKg: 19.2),
+      Aditivo(nombre: 'WEKCELO MP 150', cantidadKg: 6.0, origen: 'Minoritario 5'),
+      Aditivo(nombre: 'DLP 212', cantidadKg: 19.2, origen: 'Minoritario 4'),
     ],
   ),
   Formula(
@@ -164,8 +167,8 @@ List<Formula> formulasGrises = [
     arenaAmarillaKg: 1918.8,
     cementoKg: 456.0,
     aditivos: [
-      Aditivo(nombre: 'Wekcelo MP 150', cantidadKg: 6.0),
-      Aditivo(nombre: 'DLP 212', cantidadKg: 19.2),
+      Aditivo(nombre: 'WEKCELO MP 150', cantidadKg: 6.0, origen: 'Minoritario 5'),
+      Aditivo(nombre: 'DLP 212', cantidadKg: 19.2, origen: 'Minoritario 4'),
     ],
   ),
   Formula(
@@ -173,8 +176,8 @@ List<Formula> formulasGrises = [
     arenaAmarillaKg: 1877.28,
     cementoKg: 504.0,
     aditivos: [
-      Aditivo(nombre: 'Walocel 58150', cantidadKg: 6.72),
-      Aditivo(nombre: 'Aglomerante', cantidadKg: 12.0),
+      Aditivo(nombre: 'Walocel WL VP-M-58150', cantidadKg: 6.72, origen: 'Minoritario 5'),
+      Aditivo(nombre: 'Aglomerante', cantidadKg: 12.0, origen: 'PDF'),
     ],
   ),
   Formula(
@@ -182,8 +185,8 @@ List<Formula> formulasGrises = [
     arenaAmarillaKg: 1877.28,
     cementoKg: 504.0,
     aditivos: [
-      Aditivo(nombre: 'Walocel 58150', cantidadKg: 6.72),
-      Aditivo(nombre: 'Aglomerante', cantidadKg: 12.0),
+      Aditivo(nombre: 'Walocel WL VP-M-58150', cantidadKg: 6.72, origen: 'Minoritario 5'),
+      Aditivo(nombre: 'Aglomerante', cantidadKg: 12.0, origen: 'PDF'),
     ],
   ),
   Formula(
@@ -191,8 +194,8 @@ List<Formula> formulasGrises = [
     arenaAmarillaKg: 1877.28,
     cementoKg: 504.0,
     aditivos: [
-      Aditivo(nombre: 'Walocel 58150', cantidadKg: 6.72),
-      Aditivo(nombre: 'Aglomerante', cantidadKg: 12.0),
+      Aditivo(nombre: 'Walocel WL VP-M-58150', cantidadKg: 6.72, origen: 'Minoritario 5'),
+      Aditivo(nombre: 'Aglomerante', cantidadKg: 12.0, origen: 'PDF'),
     ],
   ),
   Formula(
@@ -200,10 +203,10 @@ List<Formula> formulasGrises = [
     arenaAmarillaKg: 1734.48,
     cementoKg: 600.0,
     aditivos: [
-      Aditivo(nombre: 'Walocel 58150', cantidadKg: 7.2),
-      Aditivo(nombre: 'Aglomerante', cantidadKg: 21.6),
-      Aditivo(nombre: 'Opagel', cantidadKg: 0.72),
-      Aditivo(nombre: 'DLP 212', cantidadKg: 36.0),
+      Aditivo(nombre: 'Walocel WL VP-M-58150', cantidadKg: 7.2, origen: 'Minoritario 5'),
+      Aditivo(nombre: 'Aglomerante', cantidadKg: 21.6, origen: 'PDF'),
+      Aditivo(nombre: 'Opagel CMT', cantidadKg: 0.72, origen: 'Minoritario 1'),
+      Aditivo(nombre: 'DLP 212', cantidadKg: 36.0, origen: 'Minoritario 4'),
     ],
   ),
   Formula(
@@ -211,10 +214,10 @@ List<Formula> formulasGrises = [
     arenaAmarillaKg: 1734.48,
     cementoKg: 600.0,
     aditivos: [
-      Aditivo(nombre: 'Walocel 58150', cantidadKg: 7.2),
-      Aditivo(nombre: 'Aglomerante', cantidadKg: 21.6),
-      Aditivo(nombre: 'Opagel', cantidadKg: 0.72),
-      Aditivo(nombre: 'DLP 212', cantidadKg: 36.0),
+      Aditivo(nombre: 'Walocel WL VP-M-58150', cantidadKg: 7.2, origen: 'Minoritario 5'),
+      Aditivo(nombre: 'Aglomerante', cantidadKg: 21.6, origen: 'PDF'),
+      Aditivo(nombre: 'Opagel CMT', cantidadKg: 0.72, origen: 'Minoritario 1'),
+      Aditivo(nombre: 'DLP 212', cantidadKg: 36.0, origen: 'Minoritario 4'),
     ],
   ),
   Formula(
@@ -222,46 +225,57 @@ List<Formula> formulasGrises = [
     arenaBlancaKg: 1515.36,
     cementoKg: 624.0,
     aditivos: [
-      Aditivo(nombre: 'Walocel 58150', cantidadKg: 6.0),
-      Aditivo(nombre: 'Aglomerante', cantidadKg: 12.0),
-      Aditivo(nombre: 'Opagel', cantidadKg: 1.2),
-      Aditivo(nombre: 'Elotex ', cantidadKg: 96.0),
-      Aditivo(nombre: 'Fortacret ', cantidadKg: 144.0),
-      Aditivo(nombre: 'Melflux ', cantidadKg: 1.44),
+      Aditivo(nombre: 'Walocel WL VP-M-58150', cantidadKg: 6.0, origen: 'Minoritario 5'),
+      Aditivo(nombre: 'Aglomerante', cantidadKg: 12.0, origen: 'PDF'),
+      Aditivo(nombre: 'Opagel CMT', cantidadKg: 1.2, origen: 'Minoritario 1'),
+      Aditivo(nombre: 'ELOTEX FX 1000', cantidadKg: 96.0, origen: 'Minoritario 4'),
+      Aditivo(nombre: 'FORTACRET 1D', cantidadKg: 144.0, origen: 'Tolva de Fibra'),
+      Aditivo(nombre: 'MELFLUX 5581', cantidadKg: 1.44, origen: 'Minoritario 2'),
     ],
   ),
   Formula(
     referencia: '901091501', // Verificada 2025-12-13//
     arenaAmarillaKg: 981.6,
+    arenaSiliceKg: 559.2,
     cementoKg: 720.0,
     aditivos: [
-      Aditivo(nombre: 'Walocel 58150', cantidadKg: 7.2),
-      Aditivo(nombre: 'DLP 2000', cantidadKg: 120.0),
-      Aditivo(nombre: 'Formiato Calcio', cantidadKg: 12.0),
-      Aditivo(nombre: 'Arena 1040', cantidadKg: 559.2),
+      Aditivo(nombre: 'Walocel WL VP-M-58150', cantidadKg: 7.2, origen: 'Minoritario 5'),
+      Aditivo(nombre: 'DLP 2000', cantidadKg: 120.0, origen: 'Minoritario 4'),
+      Aditivo(nombre: 'Formiato Calcio', cantidadKg: 12.0, origen: 'Minoritario 2'),
     ],
   ),
   Formula(
     referencia: '901101501', // Verificada 2025-12-13//
     arenaAmarillaKg: 1072.8,
+    arenaSiliceKg: 559.2,
     cementoKg: 720,
     aditivos: [
-      Aditivo(nombre: 'Wekcelo MP 150', cantidadKg: 7.2),
-      Aditivo(nombre: 'DLP 212', cantidadKg: 16.8),
-      Aditivo(nombre: 'Formiato Calcio', cantidadKg: 12),
-      Aditivo(nombre: 'Arena 1040', cantidadKg: 559.2),
-      Aditivo(nombre: 'Aglomerante', cantidadKg: 12),
+      Aditivo(nombre: 'WEKCELO MP 150', cantidadKg: 7.2, origen: 'Minoritario 5'),
+      Aditivo(nombre: 'DLP 212', cantidadKg: 16.8, origen: 'Minoritario 4'),
+      Aditivo(nombre: 'Formiato Calcio', cantidadKg: 12, origen: 'Minoritario 2'),
+      Aditivo(nombre: 'Aglomerante', cantidadKg: 12, origen: 'PDF'),
+    ],
+  ),
+  Formula(
+    referencia: '901111501', // Verificada 2025-12-13//
+    arenaAmarillaKg: 1072.8,
+    arenaSiliceKg: 559.2,
+    cementoKg: 720,
+    aditivos: [
+      Aditivo(nombre: 'WEKCELO MP 150', cantidadKg: 7.2, origen: 'Minoritario 5'),
+      Aditivo(nombre: 'DLP 212', cantidadKg: 16.8, origen: 'Minoritario 4'),
+      Aditivo(nombre: 'Formiato Calcio', cantidadKg: 12, origen: 'Minoritario 2'),
     ],
   ),
   Formula(
     referencia: '901131501', // Verificada 2025-12-13//
     arenaAmarillaKg: 1084.8,
+    arenaSiliceKg: 559.2,
     cementoKg: 720,
     aditivos: [
-      Aditivo(nombre: 'Wekcelo MP 150', cantidadKg: 7.2),
-      Aditivo(nombre: 'DLP 212', cantidadKg: 16.8),
-      Aditivo(nombre: 'Formiato Calcio', cantidadKg: 12),
-      Aditivo(nombre: 'Arena 1040', cantidadKg: 559.2),
+      Aditivo(nombre: 'WEKCELO MP 150', cantidadKg: 7.2, origen: 'Minoritario 5'),
+      Aditivo(nombre: 'DLP 212', cantidadKg: 16.8, origen: 'Minoritario 4'),
+      Aditivo(nombre: 'Formiato Calcio', cantidadKg: 12, origen: 'Minoritario 2'),
     ],
   ),
   Formula(
@@ -269,8 +283,8 @@ List<Formula> formulasGrises = [
     arenaAmarillaKg: 1884.48,
     cementoKg: 480,
     aditivos: [
-      Aditivo(nombre: 'Walocel 58150', cantidadKg: 6.72),
-      Aditivo(nombre: 'DLP 212', cantidadKg: 28.8),
+      Aditivo(nombre: 'Walocel WL VP-M-58150', cantidadKg: 6.72, origen: 'Minoritario 5'),
+      Aditivo(nombre: 'DLP 212', cantidadKg: 28.8, origen: 'Minoritario 4'),
     ],
   ),
   Formula(
@@ -278,8 +292,8 @@ List<Formula> formulasGrises = [
     arenaAmarillaKg: 1943.04,
     cementoKg: 432,
     aditivos: [
-      Aditivo(nombre: 'Walocel 58150', cantidadKg: 5.76),
-      Aditivo(nombre: 'DLP 212', cantidadKg: 19.2),
+      Aditivo(nombre: 'Walocel WL VP-M-58150', cantidadKg: 5.76, origen: 'Minoritario 5'),
+      Aditivo(nombre: 'DLP 212', cantidadKg: 19.2, origen: 'Minoritario 4'),
     ],
   ),
   Formula(
@@ -287,36 +301,39 @@ List<Formula> formulasGrises = [
     arenaAmarillaKg: 1720.8,
     cementoKg: 624,
     aditivos: [
-      Aditivo(nombre: 'Walocel 58150', cantidadKg: 7.2),
-      Aditivo(nombre: 'DLP 212', cantidadKg: 48.0),
+      Aditivo(nombre: 'Walocel WL VP-M-58150', cantidadKg: 7.2, origen: 'Minoritario 5'),
+      Aditivo(nombre: 'DLP 212', cantidadKg: 48.0, origen: 'Minoritario 4'),
     ],
   ),
   Formula(
     referencia: '901161501', // Verificada 2025-12-13//
     arenaAmarillaKg: 1889.28,
     cementoKg: 504.0,
-    aditivos: [Aditivo(nombre: 'Walocel 58150', cantidadKg: 6.72)],
+    aditivos: [Aditivo(nombre: 'Walocel WL VP-M-58150', cantidadKg: 6.72, origen: 'Minoritario 5')],
   ),
   Formula(
-    referencia: '901391501', // Verificada 2025-12-13//
-    arenaAmarillaKg: 1889.28,
+    referencia: '901391501', // NUEVA FORM. Verificada Imagen
+    arenaAmarillaKg: 1877.28,
     cementoKg: 504.0,
-    aditivos: [Aditivo(nombre: 'Walocel 58150', cantidadKg: 6.72)],
+    aditivos: [
+      Aditivo(nombre: 'WEKCELO MP 150', cantidadKg: 6.72, origen: 'Minoritario 5'),
+      Aditivo(nombre: 'DLP 212', cantidadKg: 12.0, origen: 'Minoritario 4'),
+    ],
   ),
   Formula(
     referencia: '901431501', // Verificada 2025-12-13//
     arenaAmarillaKg: 1889.28,
     cementoKg: 504.0,
-    aditivos: [Aditivo(nombre: 'Walocel 58150', cantidadKg: 6.72)],
+    aditivos: [Aditivo(nombre: 'Walocel WL VP-M-58150', cantidadKg: 6.72, origen: 'Minoritario 5')],
   ),
   Formula(
     referencia: '901521501', // Verificada 2025-12-13//
     arenaAmarillaKg: 1754.4,
     cementoKg: 600.0,
     aditivos: [
-      Aditivo(nombre: 'Wekcelo 58150', cantidadKg: 9.6),
-      Aditivo(nombre: 'DLP 212', cantidadKg: 24.0),
-      Aditivo(nombre: 'Aglomerante', cantidadKg: 12.0),
+      Aditivo(nombre: 'WEKCELO MP 150', cantidadKg: 9.6, origen: 'Minoritario 5'),
+      Aditivo(nombre: 'DLP 212', cantidadKg: 24.0, origen: 'Minoritario 4'),
+      Aditivo(nombre: 'Aglomerante', cantidadKg: 12.0, origen: 'PDF'),
     ],
   ),
   Formula(
@@ -324,12 +341,9 @@ List<Formula> formulasGrises = [
     arenaAmarillaKg: 1931.04,
     cementoKg: 432.0,
     aditivos: [
-      Aditivo(nombre: 'Wekcelo 58150', cantidadKg: 5.76),
-      Aditivo(nombre: 'DLP 212', cantidadKg: 19.2),
-      Aditivo(
-        nombre: 'Aglomerante',
-        cantidadKg: 12.0,
-      ), // Comprobar si lleva agua aditivada o no //
+      Aditivo(nombre: 'WEKCELO MP 150', cantidadKg: 5.76, origen: 'Minoritario 5'),
+      Aditivo(nombre: 'DLP 212', cantidadKg: 19.2, origen: 'Minoritario 4'),
+      Aditivo(nombre: 'Aglomerante', cantidadKg: 12.0, origen: 'PDF'),
     ],
   ),
 ];

@@ -8,18 +8,29 @@ const double calibrePlasticoMicras = 110.0;
 
 // --- ESTRUCTURA 1: Longitud de la bolsa por formato (en cm) ---
 const Map<int, double> longitudesPorFormato = {
+  10: 18.0,
   20: 58.0,
   25: 64.0,
   30: 64.0,
   40: 70.0,
 };
 
-// --- ESTRUCTURA 2: Bolsas por estiba según el formato (Capacidad variable) ---
+// --- ESTRUCTURA 2: Ancho de bobina por defecto (en cm) ---
+const Map<int, double> defaultAnchosPorFormato = {
+  10: 68.0,
+  20: 82.46,
+  25: 82.46,
+  30: 104.8,
+  40: 104.8,
+};
+
+// --- ESTRUCTURA 3: Bolsas por estiba según el formato (Capacidad variable) ---
 const Map<int, int> bolsasPorEstibaPorFormato = {
-  20: 70, // 20 kg -> 70 bolsas/estiba
-  25: 60, // 25 kg -> 60 bolsas/estiba
-  30: 45, // 30 kg -> 45 bolsas/estiba
-  40: 35, // 40 kg -> 35 bolsas/estiba
+  10: 140,
+  20: 70,
+  25: 60,
+  30: 45,
+  40: 35,
 };
 
 /// Calcula todas las métricas de producción y empaque de un rollo.
