@@ -2,10 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:produccion_unificada/models/isar_formula.dart';
-import 'package:produccion_unificada/services/preferencias_service.dart';
-import 'package:produccion_unificada/services/formula_state.dart';
-import 'package:produccion_unificada/constants.dart';
+import 'package:calproind/models/isar_formula.dart';
+import 'package:calproind/services/preferencias_service.dart';
+import 'package:calproind/services/formula_state.dart';
+import 'package:calproind/constants.dart';
 
 class CalculadoraProporcionesScreen extends StatefulWidget {
   const CalculadoraProporcionesScreen({super.key});
@@ -261,7 +261,7 @@ class _CalculadoraProporcionesScreenState
     if (isCantidadCargas) {
       textoCantidad = redondearAEntero 
           ? '${cantidad.round()} cargas' 
-          : '${cantidad.toStringAsFixed(4)} cargas';
+          : '${cantidad.toStringAsFixed(2)} cargas';
     } else {
       textoCantidad = redondearAEntero 
           ? '${cantidad.round()} kg' 
@@ -562,7 +562,7 @@ class _CalculadoraProporcionesScreenState
                   _resultadoCalculo!['op_num_cargas'] as double,
                   isPrincipal: true,
                   isCantidadCargas: true,
-                  redondearAEntero: true,
+                  redondearAEntero: false,
                 ),
                 const Divider(),
 

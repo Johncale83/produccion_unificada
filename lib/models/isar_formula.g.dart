@@ -38,39 +38,44 @@ const IsarFormulaSchema = CollectionSchema(
       name: r'arenaSilo2Kg',
       type: IsarType.double,
     ),
-    r'cementoKg': PropertySchema(
+    r'arenaSilo5Kg': PropertySchema(
       id: 4,
+      name: r'arenaSilo5Kg',
+      type: IsarType.double,
+    ),
+    r'cementoKg': PropertySchema(
+      id: 5,
       name: r'cementoKg',
       type: IsarType.double,
     ),
     r'cementoSilo7Kg': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'cementoSilo7Kg',
       type: IsarType.double,
     ),
     r'cementoSilo8Kg': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'cementoSilo8Kg',
       type: IsarType.double,
     ),
     r'esBlanca': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'esBlanca',
       type: IsarType.bool,
     ),
     r'materialesPrincipales': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'materialesPrincipales',
       type: IsarType.objectList,
       target: r'IsarMaterialPrincipal',
     ),
     r'pesoBaseKg': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'pesoBaseKg',
       type: IsarType.double,
     ),
     r'referencia': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'referencia',
       type: IsarType.string,
     )
@@ -164,18 +169,19 @@ void _isarFormulaSerialize(
   writer.writeDouble(offsets[1], object.arenaBlancaSilo4Kg);
   writer.writeDouble(offsets[2], object.arenaSilo1Kg);
   writer.writeDouble(offsets[3], object.arenaSilo2Kg);
-  writer.writeDouble(offsets[4], object.cementoKg);
-  writer.writeDouble(offsets[5], object.cementoSilo7Kg);
-  writer.writeDouble(offsets[6], object.cementoSilo8Kg);
-  writer.writeBool(offsets[7], object.esBlanca);
+  writer.writeDouble(offsets[4], object.arenaSilo5Kg);
+  writer.writeDouble(offsets[5], object.cementoKg);
+  writer.writeDouble(offsets[6], object.cementoSilo7Kg);
+  writer.writeDouble(offsets[7], object.cementoSilo8Kg);
+  writer.writeBool(offsets[8], object.esBlanca);
   writer.writeObjectList<IsarMaterialPrincipal>(
-    offsets[8],
+    offsets[9],
     allOffsets,
     IsarMaterialPrincipalSchema.serialize,
     object.materialesPrincipales,
   );
-  writer.writeDouble(offsets[9], object.pesoBaseKg);
-  writer.writeString(offsets[10], object.referencia);
+  writer.writeDouble(offsets[10], object.pesoBaseKg);
+  writer.writeString(offsets[11], object.referencia);
 }
 
 IsarFormula _isarFormulaDeserialize(
@@ -194,19 +200,20 @@ IsarFormula _isarFormulaDeserialize(
   object.arenaBlancaSilo4Kg = reader.readDoubleOrNull(offsets[1]);
   object.arenaSilo1Kg = reader.readDoubleOrNull(offsets[2]);
   object.arenaSilo2Kg = reader.readDoubleOrNull(offsets[3]);
-  object.cementoKg = reader.readDoubleOrNull(offsets[4]);
-  object.cementoSilo7Kg = reader.readDoubleOrNull(offsets[5]);
-  object.cementoSilo8Kg = reader.readDoubleOrNull(offsets[6]);
-  object.esBlanca = reader.readBoolOrNull(offsets[7]);
+  object.arenaSilo5Kg = reader.readDoubleOrNull(offsets[4]);
+  object.cementoKg = reader.readDoubleOrNull(offsets[5]);
+  object.cementoSilo7Kg = reader.readDoubleOrNull(offsets[6]);
+  object.cementoSilo8Kg = reader.readDoubleOrNull(offsets[7]);
+  object.esBlanca = reader.readBoolOrNull(offsets[8]);
   object.id = id;
   object.materialesPrincipales = reader.readObjectList<IsarMaterialPrincipal>(
-    offsets[8],
+    offsets[9],
     IsarMaterialPrincipalSchema.deserialize,
     allOffsets,
     IsarMaterialPrincipal(),
   );
-  object.pesoBaseKg = reader.readDoubleOrNull(offsets[9]);
-  object.referencia = reader.readStringOrNull(offsets[10]);
+  object.pesoBaseKg = reader.readDoubleOrNull(offsets[10]);
+  object.referencia = reader.readStringOrNull(offsets[11]);
   return object;
 }
 
@@ -237,17 +244,19 @@ P _isarFormulaDeserializeProp<P>(
     case 6:
       return (reader.readDoubleOrNull(offset)) as P;
     case 7:
-      return (reader.readBoolOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 8:
+      return (reader.readBoolOrNull(offset)) as P;
+    case 9:
       return (reader.readObjectList<IsarMaterialPrincipal>(
         offset,
         IsarMaterialPrincipalSchema.deserialize,
         allOffsets,
         IsarMaterialPrincipal(),
       )) as P;
-    case 9:
-      return (reader.readDoubleOrNull(offset)) as P;
     case 10:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 11:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -819,6 +828,90 @@ extension IsarFormulaQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'arenaSilo2Kg',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      arenaSilo5KgIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'arenaSilo5Kg',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      arenaSilo5KgIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'arenaSilo5Kg',
+      ));
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      arenaSilo5KgEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'arenaSilo5Kg',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      arenaSilo5KgGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'arenaSilo5Kg',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      arenaSilo5KgLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'arenaSilo5Kg',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterFilterCondition>
+      arenaSilo5KgBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'arenaSilo5Kg',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -1569,6 +1662,19 @@ extension IsarFormulaQuerySortBy
     });
   }
 
+  QueryBuilder<IsarFormula, IsarFormula, QAfterSortBy> sortByArenaSilo5Kg() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'arenaSilo5Kg', Sort.asc);
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterSortBy>
+      sortByArenaSilo5KgDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'arenaSilo5Kg', Sort.desc);
+    });
+  }
+
   QueryBuilder<IsarFormula, IsarFormula, QAfterSortBy> sortByCementoKg() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'cementoKg', Sort.asc);
@@ -1686,6 +1792,19 @@ extension IsarFormulaQuerySortThenBy
     });
   }
 
+  QueryBuilder<IsarFormula, IsarFormula, QAfterSortBy> thenByArenaSilo5Kg() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'arenaSilo5Kg', Sort.asc);
+    });
+  }
+
+  QueryBuilder<IsarFormula, IsarFormula, QAfterSortBy>
+      thenByArenaSilo5KgDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'arenaSilo5Kg', Sort.desc);
+    });
+  }
+
   QueryBuilder<IsarFormula, IsarFormula, QAfterSortBy> thenByCementoKg() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'cementoKg', Sort.asc);
@@ -1794,6 +1913,12 @@ extension IsarFormulaQueryWhereDistinct
     });
   }
 
+  QueryBuilder<IsarFormula, IsarFormula, QDistinct> distinctByArenaSilo5Kg() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'arenaSilo5Kg');
+    });
+  }
+
   QueryBuilder<IsarFormula, IsarFormula, QDistinct> distinctByCementoKg() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'cementoKg');
@@ -1866,6 +1991,12 @@ extension IsarFormulaQueryProperty
     });
   }
 
+  QueryBuilder<IsarFormula, double?, QQueryOperations> arenaSilo5KgProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'arenaSilo5Kg');
+    });
+  }
+
   QueryBuilder<IsarFormula, double?, QQueryOperations> cementoKgProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'cementoKg');
@@ -1908,823 +2039,6 @@ extension IsarFormulaQueryProperty
   QueryBuilder<IsarFormula, String?, QQueryOperations> referenciaProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'referencia');
-    });
-  }
-}
-
-// coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
-
-extension GetIsarCatalogoAditivoCollection on Isar {
-  IsarCollection<IsarCatalogoAditivo> get isarCatalogoAditivos =>
-      this.collection();
-}
-
-const IsarCatalogoAditivoSchema = CollectionSchema(
-  name: r'IsarCatalogoAditivo',
-  id: -4054540877865697339,
-  properties: {
-    r'nombre': PropertySchema(
-      id: 0,
-      name: r'nombre',
-      type: IsarType.string,
-    ),
-    r'origen': PropertySchema(
-      id: 1,
-      name: r'origen',
-      type: IsarType.string,
-    )
-  },
-  estimateSize: _isarCatalogoAditivoEstimateSize,
-  serialize: _isarCatalogoAditivoSerialize,
-  deserialize: _isarCatalogoAditivoDeserialize,
-  deserializeProp: _isarCatalogoAditivoDeserializeProp,
-  idName: r'id',
-  indexes: {
-    r'nombre': IndexSchema(
-      id: -8239814765453414572,
-      name: r'nombre',
-      unique: true,
-      replace: true,
-      properties: [
-        IndexPropertySchema(
-          name: r'nombre',
-          type: IndexType.hash,
-          caseSensitive: true,
-        )
-      ],
-    )
-  },
-  links: {},
-  embeddedSchemas: {},
-  getId: _isarCatalogoAditivoGetId,
-  getLinks: _isarCatalogoAditivoGetLinks,
-  attach: _isarCatalogoAditivoAttach,
-  version: '3.1.0+1',
-);
-
-int _isarCatalogoAditivoEstimateSize(
-  IsarCatalogoAditivo object,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
-  var bytesCount = offsets.last;
-  {
-    final value = object.nombre;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
-  {
-    final value = object.origen;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
-  return bytesCount;
-}
-
-void _isarCatalogoAditivoSerialize(
-  IsarCatalogoAditivo object,
-  IsarWriter writer,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
-  writer.writeString(offsets[0], object.nombre);
-  writer.writeString(offsets[1], object.origen);
-}
-
-IsarCatalogoAditivo _isarCatalogoAditivoDeserialize(
-  Id id,
-  IsarReader reader,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
-  final object = IsarCatalogoAditivo();
-  object.id = id;
-  object.nombre = reader.readStringOrNull(offsets[0]);
-  object.origen = reader.readStringOrNull(offsets[1]);
-  return object;
-}
-
-P _isarCatalogoAditivoDeserializeProp<P>(
-  IsarReader reader,
-  int propertyId,
-  int offset,
-  Map<Type, List<int>> allOffsets,
-) {
-  switch (propertyId) {
-    case 0:
-      return (reader.readStringOrNull(offset)) as P;
-    case 1:
-      return (reader.readStringOrNull(offset)) as P;
-    default:
-      throw IsarError('Unknown property with id $propertyId');
-  }
-}
-
-Id _isarCatalogoAditivoGetId(IsarCatalogoAditivo object) {
-  return object.id;
-}
-
-List<IsarLinkBase<dynamic>> _isarCatalogoAditivoGetLinks(
-    IsarCatalogoAditivo object) {
-  return [];
-}
-
-void _isarCatalogoAditivoAttach(
-    IsarCollection<dynamic> col, Id id, IsarCatalogoAditivo object) {
-  object.id = id;
-}
-
-extension IsarCatalogoAditivoByIndex on IsarCollection<IsarCatalogoAditivo> {
-  Future<IsarCatalogoAditivo?> getByNombre(String? nombre) {
-    return getByIndex(r'nombre', [nombre]);
-  }
-
-  IsarCatalogoAditivo? getByNombreSync(String? nombre) {
-    return getByIndexSync(r'nombre', [nombre]);
-  }
-
-  Future<bool> deleteByNombre(String? nombre) {
-    return deleteByIndex(r'nombre', [nombre]);
-  }
-
-  bool deleteByNombreSync(String? nombre) {
-    return deleteByIndexSync(r'nombre', [nombre]);
-  }
-
-  Future<List<IsarCatalogoAditivo?>> getAllByNombre(
-      List<String?> nombreValues) {
-    final values = nombreValues.map((e) => [e]).toList();
-    return getAllByIndex(r'nombre', values);
-  }
-
-  List<IsarCatalogoAditivo?> getAllByNombreSync(List<String?> nombreValues) {
-    final values = nombreValues.map((e) => [e]).toList();
-    return getAllByIndexSync(r'nombre', values);
-  }
-
-  Future<int> deleteAllByNombre(List<String?> nombreValues) {
-    final values = nombreValues.map((e) => [e]).toList();
-    return deleteAllByIndex(r'nombre', values);
-  }
-
-  int deleteAllByNombreSync(List<String?> nombreValues) {
-    final values = nombreValues.map((e) => [e]).toList();
-    return deleteAllByIndexSync(r'nombre', values);
-  }
-
-  Future<Id> putByNombre(IsarCatalogoAditivo object) {
-    return putByIndex(r'nombre', object);
-  }
-
-  Id putByNombreSync(IsarCatalogoAditivo object, {bool saveLinks = true}) {
-    return putByIndexSync(r'nombre', object, saveLinks: saveLinks);
-  }
-
-  Future<List<Id>> putAllByNombre(List<IsarCatalogoAditivo> objects) {
-    return putAllByIndex(r'nombre', objects);
-  }
-
-  List<Id> putAllByNombreSync(List<IsarCatalogoAditivo> objects,
-      {bool saveLinks = true}) {
-    return putAllByIndexSync(r'nombre', objects, saveLinks: saveLinks);
-  }
-}
-
-extension IsarCatalogoAditivoQueryWhereSort
-    on QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QWhere> {
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterWhere> anyId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(const IdWhereClause.any());
-    });
-  }
-}
-
-extension IsarCatalogoAditivoQueryWhere
-    on QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QWhereClause> {
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterWhereClause>
-      idEqualTo(Id id) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterWhereClause>
-      idNotEqualTo(Id id) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
-            )
-            .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
-            );
-      } else {
-        return query
-            .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
-            )
-            .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
-            );
-      }
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterWhereClause>
-      idGreaterThan(Id id, {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IdWhereClause.greaterThan(lower: id, includeLower: include),
-      );
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterWhereClause>
-      idLessThan(Id id, {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IdWhereClause.lessThan(upper: id, includeUpper: include),
-      );
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterWhereClause>
-      idBetween(
-    Id lowerId,
-    Id upperId, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterWhereClause>
-      nombreIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'nombre',
-        value: [null],
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterWhereClause>
-      nombreIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'nombre',
-        lower: [null],
-        includeLower: false,
-        upper: [],
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterWhereClause>
-      nombreEqualTo(String? nombre) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'nombre',
-        value: [nombre],
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterWhereClause>
-      nombreNotEqualTo(String? nombre) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'nombre',
-              lower: [],
-              upper: [nombre],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'nombre',
-              lower: [nombre],
-              includeLower: false,
-              upper: [],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'nombre',
-              lower: [nombre],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'nombre',
-              lower: [],
-              upper: [nombre],
-              includeUpper: false,
-            ));
-      }
-    });
-  }
-}
-
-extension IsarCatalogoAditivoQueryFilter on QueryBuilder<IsarCatalogoAditivo,
-    IsarCatalogoAditivo, QFilterCondition> {
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      idEqualTo(Id value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      idGreaterThan(
-    Id value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      idLessThan(
-    Id value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      idBetween(
-    Id lower,
-    Id upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      nombreIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'nombre',
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      nombreIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'nombre',
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      nombreEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'nombre',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      nombreGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'nombre',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      nombreLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'nombre',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      nombreBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'nombre',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      nombreStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'nombre',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      nombreEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'nombre',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      nombreContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'nombre',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      nombreMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'nombre',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      nombreIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'nombre',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      nombreIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'nombre',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      origenIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'origen',
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      origenIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'origen',
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      origenEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'origen',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      origenGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'origen',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      origenLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'origen',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      origenBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'origen',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      origenStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'origen',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      origenEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'origen',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      origenContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'origen',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      origenMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'origen',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      origenIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'origen',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterFilterCondition>
-      origenIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'origen',
-        value: '',
-      ));
-    });
-  }
-}
-
-extension IsarCatalogoAditivoQueryObject on QueryBuilder<IsarCatalogoAditivo,
-    IsarCatalogoAditivo, QFilterCondition> {}
-
-extension IsarCatalogoAditivoQueryLinks on QueryBuilder<IsarCatalogoAditivo,
-    IsarCatalogoAditivo, QFilterCondition> {}
-
-extension IsarCatalogoAditivoQuerySortBy
-    on QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QSortBy> {
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterSortBy>
-      sortByNombre() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'nombre', Sort.asc);
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterSortBy>
-      sortByNombreDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'nombre', Sort.desc);
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterSortBy>
-      sortByOrigen() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'origen', Sort.asc);
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterSortBy>
-      sortByOrigenDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'origen', Sort.desc);
-    });
-  }
-}
-
-extension IsarCatalogoAditivoQuerySortThenBy
-    on QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QSortThenBy> {
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterSortBy>
-      thenById() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'id', Sort.asc);
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterSortBy>
-      thenByIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'id', Sort.desc);
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterSortBy>
-      thenByNombre() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'nombre', Sort.asc);
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterSortBy>
-      thenByNombreDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'nombre', Sort.desc);
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterSortBy>
-      thenByOrigen() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'origen', Sort.asc);
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QAfterSortBy>
-      thenByOrigenDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'origen', Sort.desc);
-    });
-  }
-}
-
-extension IsarCatalogoAditivoQueryWhereDistinct
-    on QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QDistinct> {
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QDistinct>
-      distinctByNombre({bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'nombre', caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QDistinct>
-      distinctByOrigen({bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'origen', caseSensitive: caseSensitive);
-    });
-  }
-}
-
-extension IsarCatalogoAditivoQueryProperty
-    on QueryBuilder<IsarCatalogoAditivo, IsarCatalogoAditivo, QQueryProperty> {
-  QueryBuilder<IsarCatalogoAditivo, int, QQueryOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, String?, QQueryOperations>
-      nombreProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'nombre');
-    });
-  }
-
-  QueryBuilder<IsarCatalogoAditivo, String?, QQueryOperations>
-      origenProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'origen');
     });
   }
 }

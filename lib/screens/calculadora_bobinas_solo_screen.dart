@@ -1,10 +1,10 @@
 // Archivo: lib/screens/calculadora_bobinas_solo_screen.dart
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:produccion_unificada/constants.dart';
-import 'package:produccion_unificada/services/configuracion_rollos_service.dart';
-import 'package:produccion_unificada/services/preferencias_service.dart';
-import 'package:produccion_unificada/calculadora_logica.dart';
+import 'package:calproind/constants.dart';
+import 'package:calproind/services/configuracion_rollos_service.dart';
+import 'package:calproind/services/preferencias_service.dart';
+import 'package:calproind/calculadora_logica.dart';
 
 class CalculadoraBobinasSoloScreen extends StatefulWidget {
   const CalculadoraBobinasSoloScreen({super.key});

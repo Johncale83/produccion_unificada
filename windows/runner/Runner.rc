@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "produccion_unificada" "\0"
+            VALUE "CompanyName", "com.calproind" "\0"
+            VALUE "FileDescription", "CalProInd" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "produccion_unificada" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2025 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "produccion_unificada.exe" "\0"
-            VALUE "ProductName", "produccion_unificada" "\0"
+            VALUE "InternalName", "CalProInd" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2025 com.calproind. All rights reserved." "\0"
+            VALUE "OriginalFilename", "CalProInd.exe" "\0"
+            VALUE "ProductName", "CalProInd" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

@@ -103,14 +103,4 @@ class IsarAditivo {
   String? origen;
 }
 
-@collection
-class IsarCatalogoAditivo {
-  Id id = Isar.autoIncrement;
 
-  @Index(unique: true, replace: true)
-  String? nombre;
-
-  String? origen;
-  
-  double? pesoBulto;
-}

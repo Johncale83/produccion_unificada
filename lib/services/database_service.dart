@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/isar_formula.dart';
+import '../models/isar_catalogo_aditivo.dart';
 import '../formula.dart';
 import '../formulas_blancos.dart';
 
@@ -55,41 +56,11 @@ class DatabaseService {
       });
     }
 
-    // --- LIMPIEZA Y ACTUALIZACIÓN AUTOMÁTICA DEL CATÁLOGO ---
+    // Limpieza de aditivos antiguos (Arena)
     await _isar.writeTxn(() async {
-      // 1. Eliminar la Arena del catálogo si existe (ya no es un aditivo)
       await _isar.isarCatalogoAditivos.filter()
           .nombreContains('Arena')
           .deleteFirst();
-
-      // 2. Asegurar ubicaciones para aditivos comunes que estén vacíos
-      final todos = await _isar.isarCatalogoAditivos.where().findAll();
-      for (var adit in todos) {
-        if (adit.origen == null || adit.origen!.isEmpty || adit.origen == 'Sin ubicación') {
-          final n = (adit.nombre ?? '').toUpperCase();
-          if (n.contains('OPAGEL')) {
-            adit.origen = 'Minoritario 1';
-          } else if (n.contains('MELFLUX')) {
-            adit.origen = 'Minoritario 2';
-          } else if (n.contains('FORMIATO')) {
-            adit.origen = 'Minoritario 2';
-          } else if (n.contains('DLP')) {
-            adit.origen = 'Minoritario 4';
-          } else if (n.contains('ELOTEX')) {
-            adit.origen = 'Minoritario 6';
-          } else if (n.contains('WALOCEL')) {
-            adit.origen = 'Minoritario 5';
-          } else if (n.contains('WEKCELO')) {
-            adit.origen = 'Minoritario 5';
-          } else if (n.contains('AGLOMERANTE')) {
-            adit.origen = 'PDF';
-          } else if (n.contains('FORTACRET')) {
-            adit.origen = 'Tolva de Fibra';
-          }
-          
-          await _isar.isarCatalogoAditivos.put(adit);
-        }
-      }
     });
 
     if (!force && count > 0 && countBlancas > 0) {
@@ -364,15 +335,16 @@ class DatabaseService {
   }
  
   static Future<void> updateAditivoCatalogo(Id id, String nombre, String? origen, double? pesoBulto) async {
-    final existing = await _isar.isarCatalogoAditivos.get(id);
-    if (existing != null) {
-      await _isar.writeTxn(() async {
-        existing.nombre = nombre.trim();
-        existing.origen = origen?.trim();
-        existing.pesoBulto = pesoBulto ?? 25.0;
-        await _isar.isarCatalogoAditivos.put(existing);
-      });
-    }
+    await _isar.writeTxn(() async {
+      // Creamos un objeto nuevo con el mismo ID para forzar el reemplazo total
+      final aditivoActualizado = IsarCatalogoAditivo()
+        ..id = id
+        ..nombre = nombre.trim()
+        ..origen = origen?.trim()
+        ..pesoBulto = pesoBulto;
+        
+      await _isar.isarCatalogoAditivos.put(aditivoActualizado);
+    });
   }
 
   static Future<void> deleteAditivoCatalogo(Id id) async {

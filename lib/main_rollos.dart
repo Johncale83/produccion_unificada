@@ -1,11 +1,11 @@
 // Archivo: lib/main_rollos.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:produccion_unificada/constants.dart';
-import 'package:produccion_unificada/services/preferencias_service.dart';
-import 'package:produccion_unificada/screens/calculadora_rollos_solo_screen.dart';
-import 'package:produccion_unificada/screens/calculadora_bobinas_solo_screen.dart';
-import 'package:produccion_unificada/screens/configuracion_rollos_screen.dart';
+import 'package:calproind/constants.dart';
+import 'package:calproind/services/preferencias_service.dart';
+import 'package:calproind/screens/calculadora_rollos_solo_screen.dart';
+import 'package:calproind/screens/calculadora_bobinas_solo_screen.dart';
+import 'package:calproind/screens/configuracion_rollos_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,7 +62,7 @@ class _RollosHomeScreenState extends State<RollosHomeScreen> with SingleTickerPr
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Calculadora de Plástico'),
+        title: const Text('Calculadora de Produccion'),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.amber,

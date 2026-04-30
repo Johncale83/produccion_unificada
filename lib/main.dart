@@ -6,16 +6,16 @@
 import 'package:flutter/services.dart'; // Permite realizar tareas con el sistema, como cerrar la app.
 import 'package:flutter/material.dart';  // Importa todo lo necesario para hacer apps con Material Design.
 import 'package:provider/provider.dart'; // Importa Provider, una herramienta para manejar el estado (datos que cambian).
-import 'package:produccion_unificada/screens/calculadora_rollos_screen.dart';
-import 'package:produccion_unificada/screens/calculadora_proporciones_screen.dart';
-import 'package:produccion_unificada/constants.dart';
+import 'package:calproind/screens/calculadora_rollos_screen.dart';
+import 'package:calproind/screens/calculadora_proporciones_screen.dart';
+import 'package:calproind/constants.dart';
 
-import 'package:produccion_unificada/services/database_service.dart';       // Servicio para la base de datos de la app.
-import 'package:produccion_unificada/services/preferencias_service.dart';   // Servicio que maneja las preferencias del usuario.
-import 'package:produccion_unificada/services/formula_state.dart';          // Aquí está la gestión de las fórmulas.
-import 'package:produccion_unificada/screens/gestor_formulas_screen.dart';  // Pantalla para ver/agregar fórmulas.
-import 'package:produccion_unificada/screens/configuracion_rollos_screen.dart'; // Pantalla para configuración de rollos.
-import 'package:produccion_unificada/screens/gestor_aditivos_screen.dart';      // Pantalla para gestionar aditivos.
+import 'package:calproind/services/database_service.dart';       // Servicio para la base de datos de la app.
+import 'package:calproind/services/preferencias_service.dart';   // Servicio que maneja las preferencias del usuario.
+import 'package:calproind/services/formula_state.dart';          // Aquí está la gestión de las fórmulas.
+import 'package:calproind/screens/gestor_formulas_screen.dart';  // Pantalla para ver/agregar fórmulas.
+import 'package:calproind/screens/configuracion_rollos_screen.dart'; // Pantalla para configuración de rollos.
+import 'package:calproind/screens/gestor_aditivos_screen.dart';      // Pantalla para gestionar aditivos.
 
 // Esta es la función principal, el punto de inicio de toda aplicación Flutter.
 void main() async {
@@ -37,7 +37,7 @@ class AplicacionUnificada extends StatelessWidget {
     return ChangeNotifierProvider.value(
       value: formulaState,
       child: MaterialApp(
-        title: 'Calculadora de Producción', // Nombre que puede usarse en el sistema operativo.
+        title: 'CalProInd (Rollos)', // Nombre que puede usarse en el sistema operativo.
         theme: ThemeData(
           primarySwatch: primaryIndustrial,             // Color principal de la app, definido en constants.dart.
           scaffoldBackgroundColor: Colors.white,         // Fondo principal en blanco.
@@ -84,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     return Scaffold( // Estructura básica de una pantalla en Flutter.
       appBar: AppBar( // Barra superior de la app.
-        title: const Text('Calculadora de Producción'), // Título mostrado en la barra.
+        title: const Text('Calculadora de Produccion'),
         bottom: TabBar( // Aquí agregamos las pestañas.
           controller: _tabController,     // Controlador de las pestañas.
           indicatorColor: Colors.amber,   // Color de la línea bajo la pestaña activa.

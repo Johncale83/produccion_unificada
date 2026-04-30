@@ -1,0 +1,22 @@
+workflows:
+  ios-unsigned:
+    name: Compilar iOS Sin Firma (Sideload)
+    instance_type: mac_mini_m2
+    environment:
+      flutter: stable
+      xcode: latest
+    scripts:
+      - name: Instalar dependencias
+        script: flutter pub get
+      - name: Compilar iOS para dispositivo fisico
+        script: |
+          # Compilar para dispositivo físico (iphoneos) sin certificado
+          flutter build ios --release --no-codesign
+      - name: Empaquetar a IPA
+        script: |
+          cd build/ios/iphoneos
+          mkdir -p Payload
+          mv Runner.app Payload/
+          zip -qr produccion_unificada.ipa Payload
+    artifacts:
+      - build/ios/iphoneos/*.ipa

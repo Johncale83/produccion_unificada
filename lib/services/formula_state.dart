@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:produccion_unificada/models/isar_formula.dart';
-import 'package:produccion_unificada/services/database_service.dart';
+import 'package:calproind/models/isar_formula.dart';
+import 'package:calproind/models/isar_catalogo_aditivo.dart';
+import 'package:calproind/services/database_service.dart';
 
 class FormulaState extends ChangeNotifier {
   List<IsarFormula> _formulas = [];
@@ -25,8 +26,17 @@ class FormulaState extends ChangeNotifier {
   // Método para obtener el peso de bulto de un aditivo por su nombre
   double obtenerPesoBulto(String nombreAditivo) {
     // Normalizamos el nombre para la búsqueda
-    final nombreLimpio = nombreAditivo.replaceAll('  • TOTAL ', '').replaceAll('  • ', '').trim();
-    final aditivo = _aditivosCatalogo.where((a) => (a.nombre ?? '').trim() == nombreLimpio).firstOrNull;
+    final nombreLimpio = nombreAditivo
+        .replaceAll('  • TOTAL ', '')
+        .replaceAll('  • ', '')
+        .trim()
+        .toUpperCase();
+        
+    final aditivo = _aditivosCatalogo.where((a) {
+      final nombreCatalog = (a.nombre ?? '').trim().toUpperCase();
+      return nombreCatalog == nombreLimpio;
+    }).firstOrNull;
+    
     return aditivo?.pesoBulto ?? 25.0; // 25kg por defecto si no lo encuentra
   }
 

@@ -2,8 +2,8 @@
 // Pantalla de configuración para editar los parámetros de la calculadora de rollos.
 
 import 'package:flutter/material.dart';
-import 'package:produccion_unificada/constants.dart';
-import 'package:produccion_unificada/services/configuracion_rollos_service.dart';
+import 'package:calproind/constants.dart';
+import 'package:calproind/services/configuracion_rollos_service.dart';
 
 class ConfiguracionRollosScreen extends StatefulWidget {
   const ConfiguracionRollosScreen({super.key});

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:produccion_unificada/models/isar_formula.dart';
-import 'package:produccion_unificada/services/database_service.dart';
-import 'package:produccion_unificada/services/formula_state.dart';
-import 'package:produccion_unificada/constants.dart';
+import 'package:calproind/models/isar_formula.dart';
+import 'package:calproind/models/isar_catalogo_aditivo.dart';
+import 'package:calproind/services/database_service.dart';
+import 'package:calproind/services/formula_state.dart';
+import 'package:calproind/constants.dart';
 
 class AgregarFormulaScreen extends StatefulWidget {
   final IsarFormula? formulaAEditar;

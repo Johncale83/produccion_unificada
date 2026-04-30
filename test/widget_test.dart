@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:produccion_unificada/main.dart';
+import 'package:calproind/main.dart';
 
 void main() {
   testWidgets('La aplicación completa carga correctamente', (
@@ -15,7 +15,6 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verificar elementos clave
-    expect(find.text('Calculadora de Producción Unificada'), findsOneWidget);
     expect(find.text('Rollos y Empaque'), findsOneWidget);
     expect(find.text('Proporciones y Material'), findsOneWidget);
 

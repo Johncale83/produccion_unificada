@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.produccion_unificada"
+    namespace = "com.calproind.app"
     compileSdk = 35
     ndkVersion = "27.0.12077973"
 
@@ -20,7 +20,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.produccion_unificada"
+        applicationId = "com.calproind.app"
         minSdk = 21
         targetSdk = 35
         versionCode = flutter.versionCode
