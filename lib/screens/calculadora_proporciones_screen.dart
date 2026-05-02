@@ -87,7 +87,15 @@ class _CalculadoraProporcionesScreenState
       _mensajeError = '';
     });
 
-    // Usar la fórmula seleccionada directamente (sin re-consultar DB)
+    // Obtener la versión más reciente de la fórmula de la base de datos
+    if (_formulaSeleccionada != null) {
+      final formulasRecientes = Provider.of<FormulaState>(context, listen: false).formulas;
+      _formulaSeleccionada = formulasRecientes
+          .where((f) => f.id == _formulaSeleccionada!.id)
+          .firstOrNull ?? _formulaSeleccionada;
+    }
+
+    // Usar la fórmula seleccionada
     final formulaBase = _formulaSeleccionada;
     if (formulaBase == null) {
       setState(() {
@@ -203,17 +211,17 @@ class _CalculadoraProporcionesScreenState
 
   // Mapa de colores para los aditivos
   final Map<String, Color> _coloresAditivos = {
-    'WEKCELO MP 150': Colors.orange[800]!,
-    'Walocel WL VP-M-58150': Colors.green[800]!,
+    'WEKCELO': Colors.orange[800]!,
+    'Walocel': Colors.green[800]!,
     'DLP 212': Colors.blue[700]!,
     'DLP 2000': Colors.lightBlue[800]!,
     'Formiato Calcio': Colors.purple[700]!,
     'Arena Silice 10-40': Colors.brown[700]!,
     'Aglomerante': Colors.amber[900]!,
-    'Opagel CMT': Colors.red[700]!,
-    'ELOTEX FX 1000': Colors.indigo[700]!,
-    'FORTACRET 1D': Colors.deepOrange[700]!,
-    'MELFLUX 5581': Colors.teal[700]!,
+    'Opagel': Colors.red[700]!,
+    'ELOTEX': Colors.indigo[700]!,
+    'FORTACRET': Colors.deepOrange[700]!,
+    'MELFLUX': Colors.teal[700]!,
   };
 
   String _formatearValor(double valor) {
@@ -227,6 +235,15 @@ class _CalculadoraProporcionesScreenState
     return texto;
   }
 
+  // Función para acortar nombres excepto para los que deben verse completos
+  String _obtenerNombreCorto(String nombreCompleto) {
+    final upper = nombreCompleto.toUpperCase();
+    if (upper.contains('FORMIATO') || upper.contains('DLP')) {
+      return nombreCompleto;
+    }
+    return nombreCompleto.split(' ').first;
+  }
+
   // Widget de ayuda para formatear y mostrar cada fila de resultados.
   Widget _buildResultadoFila(
     String material,
@@ -237,7 +254,8 @@ class _CalculadoraProporcionesScreenState
     String? tolva,
     bool mostrarBultos = false,
     double? pesoBulto,
-    bool redondearAEntero = false, // Nueva opción para eliminar decimales
+    bool redondearAEntero = false,
+    String? nombreOriginalParaColor,
   }) {
     TextStyle baseStyle = TextStyle(
       fontSize: isPrincipal ? 18 : 16,
@@ -248,9 +266,10 @@ class _CalculadoraProporcionesScreenState
     // Color específico si es aditivo
     Color colorAditivo = Colors.black87;
     if (isAditivo) {
+      String textoABuscar = nombreOriginalParaColor ?? material;
       colorAditivo = _coloresAditivos.entries
           .firstWhere(
-            (entry) => material.contains(entry.key),
+            (entry) => textoABuscar.contains(entry.key),
             orElse: () => const MapEntry('', Colors.black87),
           )
           .value;
@@ -272,10 +291,16 @@ class _CalculadoraProporcionesScreenState
     bool esAglomerante = material.toUpperCase().contains('AGLOMERANTE') || (tolva?.toUpperCase().contains('PDF') ?? false);
 
     if (mostrarBultos && pesoBulto != null && pesoBulto > 0 && !esAglomerante) {
-      // REGLA: Redondear siempre al valor superior (ej: 14.4 -> 15 bultos)
-      double numBultos = (cantidad / pesoBulto).ceilToDouble();
+      // REGLA: Mostrar cantidad exacta con máximo un decimal
+      double numBultos = cantidad / pesoBulto;
       
-      textoCantidad += ' (${_formatearValor(numBultos)} bultos)';
+      // Formatear a 1 decimal. Si es entero (ej: 3.0), quitar el .0 para que se vea más limpio.
+      String textoBultos = numBultos.toStringAsFixed(1);
+      if (textoBultos.endsWith('.0')) {
+        textoBultos = textoBultos.substring(0, textoBultos.length - 2);
+      }
+      
+      textoCantidad += ' ($textoBultos bultos)';
     }
 
     return Padding(
@@ -323,8 +348,10 @@ class _CalculadoraProporcionesScreenState
             .where((f) => f.id == _formulaSeleccionada!.id)
             .firstOrNull ?? _formulaSeleccionada;
 
-    return SingleChildScrollView(
-      child: Padding(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: SingleChildScrollView(
+        child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -535,11 +562,13 @@ class _CalculadoraProporcionesScreenState
                     .map((aditivoMap) {
                   final nombre = aditivoMap['nombre'] as String? ?? 'Aditivo';
                   final origen = aditivoMap['origen'] as String? ?? 'Sin Tolva Asignada';
+                  final nombreCorto = _obtenerNombreCorto(nombre);
                   return _buildResultadoFila(
-                    '  • $nombre',
+                    '  • $nombreCorto',
                     aditivoMap['cantidad'] as double,
                     isAditivo: true,
                     tolva: origen,
+                    nombreOriginalParaColor: nombre,
                   );
                 }),
 
@@ -564,53 +593,131 @@ class _CalculadoraProporcionesScreenState
                   isCantidadCargas: true,
                   redondearAEntero: false,
                 ),
-                const Divider(),
-
-                if (_resultadoCalculo!['op_principales_detalle'] != null)
-                  ...(_resultadoCalculo!['op_principales_detalle'] as List<Map<String, dynamic>>).map((detalle) {
-                    String fullOrigen = detalle['origen'] as String;
-                    String nombre = 'TOTAL $fullOrigen';
-                    String? silo;
-                    if (fullOrigen.contains('(')) {
-                      final parts = fullOrigen.split('(');
-                      nombre = 'TOTAL ${parts[0].trim()}';
-                      silo = parts[1].replaceAll(')', '').trim();
-                    }
-                    return _buildResultadoFila(
-                      nombre,
-                      detalle['cantidad'] as double,
-                      isPrincipal: true,
-                      tolva: silo,
-                      redondearAEntero: true,
-                    );
-                  }),
-
-                const SizedBox(height: 16),
-                const Text(
-                  'TOTAL Aditivos Requeridos:',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Card(
+                  elevation: 3,
+                  margin: EdgeInsets.zero,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Table(
+                      columnWidths: const {
+                        0: FlexColumnWidth(2.5),
+                        1: FlexColumnWidth(1.2),
+                        2: FlexColumnWidth(1.2),
+                      },
+                      border: TableBorder.all(color: Colors.grey.shade300),
+                      children: [
+                        // Cabecera de la tabla
+                        TableRow(
+                          decoration: BoxDecoration(color: Colors.indigo.shade50),
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text('Material / Tolva', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo)),
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text('Kilos', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo), textAlign: TextAlign.center),
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text('Bultos', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo), textAlign: TextAlign.center),
+                            ),
+                          ],
+                        ),
+                        
+                        // 1. Materias Primas Principales
+                        if (_resultadoCalculo!['op_principales_detalle'] != null)
+                          ...(_resultadoCalculo!['op_principales_detalle'] as List<Map<String, dynamic>>).map((detalle) {
+                            String fullOrigen = detalle['origen'] as String;
+                            String nombre = fullOrigen;
+                            String silo = '';
+                            if (fullOrigen.contains('(')) {
+                              final parts = fullOrigen.split('(');
+                              nombre = parts[0].trim();
+                              silo = parts[1].replaceAll(')', '').trim();
+                            }
+                            double cantidad = detalle['cantidad'] as double;
+                            
+                            return TableRow(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(nombre, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                      if (silo.isNotEmpty) Text(silo, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                    ],
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text('${cantidad.round()} kg', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                ),
+                                const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text('-', textAlign: TextAlign.center),
+                                ),
+                              ],
+                            );
+                          }),
+                        
+                        // 2. Aditivos
+                        if (_resultadoCalculo!['op_aditivos'] != null)
+                          ...(_resultadoCalculo!['op_aditivos'] as List<Map<String, dynamic>>).map((aditivoMap) {
+                            final nombreOriginal = aditivoMap['nombre'] as String? ?? 'Aditivo';
+                            final origen = aditivoMap['origen'] as String? ?? 'Sin Tolva Asignada';
+                            final nombreCorto = _obtenerNombreCorto(nombreOriginal);
+                            final cantidad = aditivoMap['cantidad'] as double;
+                            
+                            // Extraer el color asignado
+                            Color colorAditivo = _coloresAditivos.entries
+                                .firstWhere(
+                                  (entry) => nombreOriginal.contains(entry.key),
+                                  orElse: () => const MapEntry('', Colors.black87),
+                                )
+                                .value;
+                                
+                            // Lógica de Bultos
+                            String textoBultos = '-';
+                            final pesoBulto = formulaState.obtenerPesoBulto(nombreOriginal);
+                            bool esAglomerante = nombreOriginal.toUpperCase().contains('AGLOMERANTE') || origen.toUpperCase().contains('PDF');
+                            
+                            if (pesoBulto > 0 && !esAglomerante) {
+                              double numBultos = cantidad / pesoBulto;
+                              textoBultos = numBultos.toStringAsFixed(1);
+                              if (textoBultos.endsWith('.0')) {
+                                textoBultos = textoBultos.substring(0, textoBultos.length - 2);
+                              }
+                            }
+                            
+                            return TableRow(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(nombreCorto, style: TextStyle(fontWeight: FontWeight.bold, color: colorAditivo)),
+                                      Text(origen, style: TextStyle(fontSize: 12, color: colorAditivo)),
+                                    ],
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text('${_formatearValor(cantidad)} kg', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, color: colorAditivo)),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(textoBultos, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, color: colorAditivo)),
+                                ),
+                              ],
+                            );
+                          }),
+                      ],
+                    ),
+                  ),
                 ),
-
-                if (_resultadoCalculo!['op_aditivos'] != null)
-                  ...(_resultadoCalculo!['op_aditivos']
-                          as List<Map<String, dynamic>>)
-                      .map((aditivoMap) {
-                    final nombre = aditivoMap['nombre'] as String? ?? 'Aditivo';
-                    final origen = aditivoMap['origen'] as String? ?? 'Sin Tolva Asignada';
-                    final materialText = '  • TOTAL $nombre';
-                    
-                    // Buscamos el peso del bulto en el catálogo global
-                    final pesoBulto = formulaState.obtenerPesoBulto(nombre);
-
-                    return _buildResultadoFila(
-                      materialText,
-                      aditivoMap['cantidad'] as double,
-                      isAditivo: true,
-                      tolva: origen,
-                      mostrarBultos: true,
-                      pesoBulto: pesoBulto,
-                    );
-                  }),
               ],
 
               const SizedBox(height: 20),
@@ -630,6 +737,7 @@ class _CalculadoraProporcionesScreenState
             ],
           ],
         ),
+      ),
       ),
     );
   }

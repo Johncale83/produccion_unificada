@@ -77,6 +77,7 @@ class _CalculadoraRollosScreenState extends State<CalculadoraRollosScreen> {
   }
 
   void _calcular() {
+    FocusScope.of(context).unfocus();
     final double? grosorCm = double.tryParse(
       _grosorController.text.replaceAll(',', '.'),
     );
@@ -125,6 +126,11 @@ class _CalculadoraRollosScreenState extends State<CalculadoraRollosScreen> {
       Map<String, dynamic>? resultadoParcial;
 
       if (_formulaSeleccionada != null) {
+        final formulasRecientes = Provider.of<FormulaState>(context, listen: false).formulas;
+        _formulaSeleccionada = formulasRecientes
+            .where((f) => f.id == _formulaSeleccionada!.id)
+            .firstOrNull ?? _formulaSeleccionada;
+            
         final double pesoBase = _formulaSeleccionada!.pesoBaseKg ?? 2400.0;
         final double cargasExactas = kgTotales / pesoBase;
         cargasCompletas = cargasExactas.floor();
@@ -212,8 +218,10 @@ class _CalculadoraRollosScreenState extends State<CalculadoraRollosScreen> {
                     .firstOrNull ??
                 _formulaSeleccionada;
 
-    return SingleChildScrollView(
-      child: Padding(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: SingleChildScrollView(
+        child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -577,6 +585,7 @@ class _CalculadoraRollosScreenState extends State<CalculadoraRollosScreen> {
             const SizedBox(height: 10),
           ],
         ),
+      ),
       ),
     );
   }

@@ -38,6 +38,7 @@ class _CalculadoraRollosSoloScreenState extends State<CalculadoraRollosSoloScree
   }
 
   void _calcular() {
+    FocusScope.of(context).unfocus();
     final double? grosorCm = double.tryParse(_grosorController.text.replaceAll(',', '.'));
 
     if (grosorCm == null || grosorCm <= 0) {
@@ -67,8 +68,10 @@ class _CalculadoraRollosSoloScreenState extends State<CalculadoraRollosSoloScree
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -78,6 +81,7 @@ class _CalculadoraRollosSoloScreenState extends State<CalculadoraRollosSoloScree
             Text(_mensajeError, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
           _buildResults(),
         ],
+      ),
       ),
     );
   }

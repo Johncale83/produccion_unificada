@@ -33,16 +33,16 @@ class DatabaseService {
 
     if (countCatalog == 0) {
       final defaultCatalogs = [
-        {'nombre': 'Opagel CMT', 'origen': 'Minoritario 1', 'peso': 25.0},
-        {'nombre': 'MELFLUX 5581', 'origen': 'Minoritario 2', 'peso': 25.0},
+        {'nombre': 'Opagel', 'origen': 'Minoritario 1', 'peso': 25.0},
+        {'nombre': 'MELFLUX', 'origen': 'Minoritario 2', 'peso': 25.0},
         {'nombre': 'Formiato Calcio', 'origen': 'Minoritario 2', 'peso': 25.0},
         {'nombre': 'DLP 212', 'origen': 'Minoritario 4', 'peso': 20.0},
         {'nombre': 'DLP 2000', 'origen': 'Minoritario 4', 'peso': 20.0},
-        {'nombre': 'ELOTEX FX 1000', 'origen': 'Minoritario 6', 'peso': 25.0},
-        {'nombre': 'WEKCELO MP 150', 'origen': 'Minoritario 5', 'peso': 25.0},
-        {'nombre': 'Walocel WL VP-M-58150', 'origen': 'Minoritario 5', 'peso': 25.0},
+        {'nombre': 'ELOTEX', 'origen': 'Minoritario 6', 'peso': 25.0},
+        {'nombre': 'WEKCELO', 'origen': 'Minoritario 5', 'peso': 25.0},
+        {'nombre': 'Walocel', 'origen': 'Minoritario 5', 'peso': 25.0},
         {'nombre': 'Aglomerante', 'origen': 'PDF', 'peso': 25.0},
-        {'nombre': 'FORTACRET 1D', 'origen': 'Tolva de Fibra', 'peso': 25.0},
+        {'nombre': 'FORTACRET', 'origen': 'Tolva de Fibra', 'peso': 25.0},
       ];
       await _isar.writeTxn(() async {
         for (var item in defaultCatalogs) {
@@ -336,6 +336,10 @@ class DatabaseService {
  
   static Future<void> updateAditivoCatalogo(Id id, String nombre, String? origen, double? pesoBulto) async {
     await _isar.writeTxn(() async {
+      // Obtenemos el aditivo antiguo para saber su nombre original
+      final aditivoAntiguo = await _isar.isarCatalogoAditivos.get(id);
+      String nombreAntiguo = aditivoAntiguo?.nombre ?? nombre.trim();
+
       // Creamos un objeto nuevo con el mismo ID para forzar el reemplazo total
       final aditivoActualizado = IsarCatalogoAditivo()
         ..id = id
@@ -344,6 +348,28 @@ class DatabaseService {
         ..pesoBulto = pesoBulto;
         
       await _isar.isarCatalogoAditivos.put(aditivoActualizado);
+
+      // Actualizar en cascada todas las fórmulas que contienen este aditivo
+      final todasLasFormulas = await _isar.isarFormulas.where().findAll();
+      for (var f in todasLasFormulas) {
+        if (f.aditivos != null) {
+          bool cambiada = false;
+          for (var a in f.aditivos!) {
+            if (a.nombre == nombreAntiguo) {
+              a.nombre = nombre.trim();
+              if (origen != null && origen.trim().isNotEmpty) {
+                a.origen = origen.trim();
+              }
+              cambiada = true;
+            }
+          }
+          if (cambiada) {
+            // Reasignar la lista para que Isar detecte el cambio en el embedded object
+            f.aditivos = List.from(f.aditivos!);
+            await _isar.isarFormulas.put(f);
+          }
+        }
+      }
     });
   }
 

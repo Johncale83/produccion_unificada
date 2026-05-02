@@ -459,12 +459,14 @@ class _AgregarFormulaScreenState extends State<AgregarFormulaScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Materias Primas Principales',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: primaryIndustrial,
+                    Expanded(
+                      child: const Text(
+                        'Materias Primas Principales',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: primaryIndustrial,
+                        ),
                       ),
                     ),
                     TextButton.icon(
@@ -582,19 +584,28 @@ class _AgregarFormulaScreenState extends State<AgregarFormulaScreen> {
                             Expanded(
                               flex: 2,
                               child: DropdownButtonFormField<String>(
-                                value: _catalogoAditivos.any((a) => a.nombre == row['nombre']?.text)
-                                    ? row['nombre']?.text
-                                    : null,
+                                value: row['nombre']?.text.isNotEmpty == true ? row['nombre']?.text : null,
                                 decoration: InputDecoration(
                                   labelText: 'Nombre Aditivo ${idx + 1}',
                                   border: const OutlineInputBorder(),
                                 ),
-                                items: _catalogoAditivos.map((aditivo) {
-                                  return DropdownMenuItem<String>(
-                                    value: aditivo.nombre,
-                                    child: Text(aditivo.nombre ?? 'Sin nombre'),
-                                  );
-                                }).toList(),
+                                items: () {
+                                  final items = _catalogoAditivos.map((aditivo) {
+                                    return DropdownMenuItem<String>(
+                                      value: aditivo.nombre,
+                                      child: Text(aditivo.nombre ?? 'Sin nombre'),
+                                    );
+                                  }).toList();
+                                  
+                                  final currentVal = row['nombre']?.text;
+                                  if (currentVal != null && currentVal.isNotEmpty && !_catalogoAditivos.any((a) => a.nombre == currentVal)) {
+                                    items.add(DropdownMenuItem<String>(
+                                      value: currentVal,
+                                      child: Text(currentVal),
+                                    ));
+                                  }
+                                  return items;
+                                }(),
                                 onChanged: (val) {
                                   if (val != null) {
                                     setState(() {

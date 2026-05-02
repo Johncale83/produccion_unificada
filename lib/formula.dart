@@ -81,7 +81,7 @@ List<Formula> formulasGrises = [
     cementoKg: 336.0,
     aditivos: [
       Aditivo(
-        nombre: 'WEKCELO MP 150',
+        nombre: 'WEKCELO',
         cantidadKg: 4.56,
         origen: 'Minoritario 5',
       ),
@@ -93,7 +93,7 @@ List<Formula> formulasGrises = [
     cementoKg: 336.0,
     aditivos: [
       Aditivo(
-        nombre: 'WEKCELO MP 150',
+        nombre: 'WEKCELO',
         cantidadKg: 4.56,
         origen: 'Minoritario 5',
       ),
@@ -105,7 +105,7 @@ List<Formula> formulasGrises = [
     cementoKg: 336.0,
     aditivos: [
       Aditivo(
-        nombre: 'WEKCELO MP 150',
+        nombre: 'WEKCELO',
         cantidadKg: 4.56,
         origen: 'Minoritario 5',
       ),
@@ -117,7 +117,7 @@ List<Formula> formulasGrises = [
     cementoKg: 336.0,
     aditivos: [
       Aditivo(
-        nombre: 'WEKCELO MP 150',
+        nombre: 'WEKCELO',
         cantidadKg: 4.56,
         origen: 'Minoritario 5',
       ),
@@ -129,7 +129,7 @@ List<Formula> formulasGrises = [
     cementoKg: 336.0,
     aditivos: [
       Aditivo(
-        nombre: 'WEKCELO MP 150',
+        nombre: 'WEKCELO',
         cantidadKg: 4.56,
         origen: 'Minoritario 5',
       ),
@@ -141,7 +141,7 @@ List<Formula> formulasGrises = [
     cementoKg: 336.0,
     aditivos: [
       Aditivo(
-        nombre: 'WEKCELO MP 150',
+        nombre: 'WEKCELO',
         cantidadKg: 4.56,
         origen: 'Minoritario 5',
       ),
@@ -153,7 +153,7 @@ List<Formula> formulasGrises = [
     cementoKg: 336.0,
     aditivos: [
       Aditivo(
-        nombre: 'WEKCELO MP 150',
+        nombre: 'WEKCELO',
         cantidadKg: 4.56,
         origen: 'Minoritario 5',
       ),
@@ -165,7 +165,7 @@ List<Formula> formulasGrises = [
     cementoKg: 456.0,
     aditivos: [
       Aditivo(
-        nombre: 'WEKCELO MP 150',
+        nombre: 'WEKCELO',
         cantidadKg: 6.0,
         origen: 'Minoritario 5',
       ),
@@ -178,7 +178,7 @@ List<Formula> formulasGrises = [
     cementoKg: 456.0,
     aditivos: [
       Aditivo(
-        nombre: 'WEKCELO MP 150',
+        nombre: 'WEKCELO',
         cantidadKg: 6.0,
         origen: 'Minoritario 5',
       ),
@@ -191,7 +191,7 @@ List<Formula> formulasGrises = [
     cementoKg: 456.0,
     aditivos: [
       Aditivo(
-        nombre: 'WEKCELO MP 150',
+        nombre: 'WEKCELO',
         cantidadKg: 6.0,
         origen: 'Minoritario 5',
       ),
@@ -204,7 +204,7 @@ List<Formula> formulasGrises = [
     cementoKg: 456.0,
     aditivos: [
       Aditivo(
-        nombre: 'WEKCELO MP 150',
+        nombre: 'WEKCELO',
         cantidadKg: 6.0,
         origen: 'Minoritario 5',
       ),
@@ -217,7 +217,7 @@ List<Formula> formulasGrises = [
     cementoKg: 456.0,
     aditivos: [
       Aditivo(
-        nombre: 'WEKCELO MP 150',
+        nombre: 'WEKCELO',
         cantidadKg: 6.0,
         origen: 'Minoritario 5',
       ),
@@ -230,7 +230,7 @@ List<Formula> formulasGrises = [
     cementoKg: 456.0,
     aditivos: [
       Aditivo(
-        nombre: 'WEKCELO MP 150',
+        nombre: 'WEKCELO',
         cantidadKg: 6.0,
         origen: 'Minoritario 5',
       ),
@@ -243,7 +243,7 @@ List<Formula> formulasGrises = [
     cementoKg: 504.0,
     aditivos: [
       Aditivo(
-        nombre: 'Walocel WL VP-M-58150',
+        nombre: 'Walocel',
         cantidadKg: 6.72,
         origen: 'Minoritario 5',
       ),
@@ -256,7 +256,7 @@ List<Formula> formulasGrises = [
     cementoKg: 504.0,
     aditivos: [
       Aditivo(
-        nombre: 'Walocel WL VP-M-58150',
+        nombre: 'Walocel',
         cantidadKg: 6.72,
         origen: 'Minoritario 5',
       ),
@@ -269,7 +269,7 @@ List<Formula> formulasGrises = [
     cementoKg: 504.0,
     aditivos: [
       Aditivo(
-        nombre: 'Walocel WL VP-M-58150',
+        nombre: 'Walocel',
         cantidadKg: 6.72,
         origen: 'Minoritario 5',
       ),
@@ -282,12 +282,12 @@ List<Formula> formulasGrises = [
     cementoKg: 600.0,
     aditivos: [
       Aditivo(
-        nombre: 'Walocel WL VP-M-58150',
+        nombre: 'Walocel',
         cantidadKg: 7.2,
         origen: 'Minoritario 5',
       ),
       Aditivo(nombre: 'Aglomerante', cantidadKg: 21.6, origen: 'PDF'),
-      Aditivo(nombre: 'Opagel CMT', cantidadKg: 0.72, origen: 'Minoritario 1'),
+      Aditivo(nombre: 'Opagel', cantidadKg: 0.72, origen: 'Minoritario 1'),
       Aditivo(nombre: 'DLP 212', cantidadKg: 36.0, origen: 'Minoritario 4'),
     ],
   ),
@@ -297,12 +297,12 @@ List<Formula> formulasGrises = [
     cementoKg: 600.0,
     aditivos: [
       Aditivo(
-        nombre: 'Walocel WL VP-M-58150',
+        nombre: 'Walocel',
         cantidadKg: 7.2,
         origen: 'Minoritario 5',
       ),
       Aditivo(nombre: 'Aglomerante', cantidadKg: 21.6, origen: 'PDF'),
-      Aditivo(nombre: 'Opagel CMT', cantidadKg: 0.72, origen: 'Minoritario 1'),
+      Aditivo(nombre: 'Opagel', cantidadKg: 0.72, origen: 'Minoritario 1'),
       Aditivo(nombre: 'DLP 212', cantidadKg: 36.0, origen: 'Minoritario 4'),
     ],
   ),
@@ -312,24 +312,24 @@ List<Formula> formulasGrises = [
     cementoKg: 624.0,
     aditivos: [
       Aditivo(
-        nombre: 'Walocel WL VP-M-58150',
+        nombre: 'Walocel',
         cantidadKg: 6.0,
         origen: 'Minoritario 5',
       ),
       Aditivo(nombre: 'Aglomerante', cantidadKg: 12.0, origen: 'PDF'),
-      Aditivo(nombre: 'Opagel CMT', cantidadKg: 1.2, origen: 'Minoritario 1'),
+      Aditivo(nombre: 'Opagel', cantidadKg: 1.2, origen: 'Minoritario 1'),
       Aditivo(
-        nombre: 'ELOTEX FX 1000',
+        nombre: 'ELOTEX',
         cantidadKg: 96.0,
         origen: 'Minoritario 4',
       ),
       Aditivo(
-        nombre: 'FORTACRET 1D',
+        nombre: 'FORTACRET',
         cantidadKg: 144.0,
         origen: 'Tolva de Fibra',
       ),
       Aditivo(
-        nombre: 'MELFLUX 5581',
+        nombre: 'MELFLUX',
         cantidadKg: 1.44,
         origen: 'Minoritario 2',
       ),
@@ -342,7 +342,7 @@ List<Formula> formulasGrises = [
     cementoKg: 720.0,
     aditivos: [
       Aditivo(
-        nombre: 'Walocel WL VP-M-58150',
+        nombre: 'Walocel',
         cantidadKg: 7.2,
         origen: 'Minoritario 5',
       ),
@@ -361,7 +361,7 @@ List<Formula> formulasGrises = [
     cementoKg: 720,
     aditivos: [
       Aditivo(
-        nombre: 'WEKCELO MP 150',
+        nombre: 'WEKCELO',
         cantidadKg: 7.2,
         origen: 'Minoritario 5',
       ),
@@ -381,7 +381,7 @@ List<Formula> formulasGrises = [
     cementoKg: 720,
     aditivos: [
       Aditivo(
-        nombre: 'WEKCELO MP 150',
+        nombre: 'WEKCELO',
         cantidadKg: 7.2,
         origen: 'Minoritario 5',
       ),
@@ -400,7 +400,7 @@ List<Formula> formulasGrises = [
     cementoKg: 720,
     aditivos: [
       Aditivo(
-        nombre: 'WEKCELO MP 150',
+        nombre: 'WEKCELO',
         cantidadKg: 7.2,
         origen: 'Minoritario 5',
       ),
@@ -418,7 +418,7 @@ List<Formula> formulasGrises = [
     cementoKg: 480,
     aditivos: [
       Aditivo(
-        nombre: 'Walocel WL VP-M-58150',
+        nombre: 'Walocel',
         cantidadKg: 6.72,
         origen: 'Minoritario 5',
       ),
@@ -431,7 +431,7 @@ List<Formula> formulasGrises = [
     cementoKg: 432,
     aditivos: [
       Aditivo(
-        nombre: 'Walocel WL VP-M-58150',
+        nombre: 'Walocel',
         cantidadKg: 5.76,
         origen: 'Minoritario 5',
       ),
@@ -444,7 +444,7 @@ List<Formula> formulasGrises = [
     cementoKg: 624,
     aditivos: [
       Aditivo(
-        nombre: 'Walocel WL VP-M-58150',
+        nombre: 'Walocel',
         cantidadKg: 7.2,
         origen: 'Minoritario 5',
       ),
@@ -457,7 +457,7 @@ List<Formula> formulasGrises = [
     cementoKg: 504.0,
     aditivos: [
       Aditivo(
-        nombre: 'Walocel WL VP-M-58150',
+        nombre: 'Walocel',
         cantidadKg: 6.72,
         origen: 'Minoritario 5',
       ),
@@ -469,7 +469,7 @@ List<Formula> formulasGrises = [
     cementoKg: 504.0,
     aditivos: [
       Aditivo(
-        nombre: 'WEKCELO MP 150',
+        nombre: 'WEKCELO',
         cantidadKg: 6.72,
         origen: 'Minoritario 5',
       ),
@@ -482,7 +482,7 @@ List<Formula> formulasGrises = [
     cementoKg: 504.0,
     aditivos: [
       Aditivo(
-        nombre: 'Walocel WL VP-M-58150',
+        nombre: 'Walocel',
         cantidadKg: 6.72,
         origen: 'Minoritario 5',
       ),
@@ -494,7 +494,7 @@ List<Formula> formulasGrises = [
     cementoKg: 600.0,
     aditivos: [
       Aditivo(
-        nombre: 'WEKCELO MP 150',
+        nombre: 'WEKCELO',
         cantidadKg: 9.6,
         origen: 'Minoritario 5',
       ),
@@ -508,7 +508,7 @@ List<Formula> formulasGrises = [
     cementoKg: 600.0,
     aditivos: [
       Aditivo(
-        nombre: 'WEKCELO MP 150',
+        nombre: 'WEKCELO',
         cantidadKg: 7.2,
         origen: 'Minoritario 5',
       ),
