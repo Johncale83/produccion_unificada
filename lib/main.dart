@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';  // Importa todo lo necesario para hacer
 import 'package:provider/provider.dart'; // Importa Provider, una herramienta para manejar el estado (datos que cambian).
 import 'package:calproind/screens/calculadora_rollos_screen.dart';
 import 'package:calproind/screens/calculadora_proporciones_screen.dart';
+import 'package:calproind/screens/calculadora_estibas_screen.dart';
 import 'package:calproind/constants.dart';
 
 import 'package:calproind/services/database_service.dart';       // Servicio para la base de datos de la app.
@@ -70,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this); // Crea dos pestañas ("Proporciones" y "Rollos").
+    _tabController = TabController(length: 3, vsync: this); // Crea tres pestañas.
   }
 
   @override
@@ -93,6 +94,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           tabs: const [
             Tab(icon: Icon(Icons.science), text: 'Proporciones'), // Primera pestaña.
             Tab(icon: Icon(Icons.inventory_2), text: 'Rollos'),   // Segunda pestaña.
+            Tab(icon: Icon(Icons.layers), text: 'Estibas'),       // Tercera pestaña.
           ],
         ),
         actions: [ // Botones que aparecen a la derecha de la AppBar.
@@ -214,6 +216,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         children: const [
           CalculadoraProporcionesScreen(), // Pantalla para calcular proporciones.
           CalculadoraRollosScreen(),       // Pantalla para calcular rollos.
+          CalculadoraEstibasScreen(),      // Pantalla para calcular estibas.
         ],
       ),
     );
