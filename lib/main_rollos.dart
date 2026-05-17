@@ -5,6 +5,7 @@ import 'package:calproind/constants.dart';
 import 'package:calproind/services/preferencias_service.dart';
 import 'package:calproind/screens/calculadora_rollos_solo_screen.dart';
 import 'package:calproind/screens/calculadora_bobinas_solo_screen.dart';
+import 'package:calproind/screens/calculadora_estibas_screen.dart';
 import 'package:calproind/screens/configuracion_rollos_screen.dart';
 
 void main() async {
@@ -49,7 +50,7 @@ class _RollosHomeScreenState extends State<RollosHomeScreen> with SingleTickerPr
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -71,6 +72,7 @@ class _RollosHomeScreenState extends State<RollosHomeScreen> with SingleTickerPr
           tabs: const [
             Tab(icon: Icon(Icons.scale), text: 'KG Rollo'),
             Tab(icon: Icon(Icons.inventory_2), text: 'Empaque'),
+            Tab(icon: Icon(Icons.layers), text: 'Estibas'),
           ],
         ),
         actions: [
@@ -100,6 +102,7 @@ class _RollosHomeScreenState extends State<RollosHomeScreen> with SingleTickerPr
         children: [
           CalculadoraBobinasSoloScreen(key: ValueKey('bobinas_$_refreshCounter')),
           CalculadoraRollosSoloScreen(key: ValueKey('rollos_$_refreshCounter')),
+          const CalculadoraEstibasScreen(),
         ],
       ),
       bottomNavigationBar: Container(
