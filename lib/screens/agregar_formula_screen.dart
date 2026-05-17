@@ -482,69 +482,86 @@ class _AgregarFormulaScreenState extends State<AgregarFormulaScreen> {
                   int idx = entry.key;
                   var row = entry.value;
                   
-                  return Padding(
+                  return Card(
                     key: ValueKey('main_mat_$idx'),
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: Row(
-                      children: [
-                        // 1. SILO
-                        SizedBox(
-                          width: 85,
-                          child: DropdownButtonFormField<String>(
-                            value: _opcionesSilos.contains(row['nombre']?.text) 
-                                ? row['nombre']?.text 
-                                : _opcionesSilos[0],
-                            decoration: const InputDecoration(
-                              labelText: 'Silo',
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                            ),
-                            items: _opcionesSilos.map((silo) => DropdownMenuItem(
-                              value: silo, 
-                              child: Text(silo.split(' ').last, style: const TextStyle(fontSize: 14))
-                            )).toList(),
-                            onChanged: (val) {
-                              if (val != null) setState(() => row['nombre']?.text = val);
-                            },
+                    margin: const EdgeInsets.only(bottom: 12),
+                    elevation: 1,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      side: BorderSide(color: Colors.grey.shade300, width: 1),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                backgroundColor: primaryIndustrial.withValues(alpha: 0.1),
+                                radius: 18,
+                                child: Text(
+                                  row['nombre']?.text.split(' ').last ?? '',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, color: primaryIndustrial),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: DropdownButtonFormField<String>(
+                                  value: _opcionesSilos.contains(row['nombre']?.text) 
+                                      ? row['nombre']?.text 
+                                      : _opcionesSilos[0],
+                                  decoration: const InputDecoration(
+                                    labelText: 'Silo',
+                                    border: UnderlineInputBorder(),
+                                    contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                                  ),
+                                  items: _opcionesSilos.map((silo) => DropdownMenuItem(
+                                    value: silo, 
+                                    child: Text(silo, style: const TextStyle(fontSize: 14))
+                                  )).toList(),
+                                  onChanged: (val) {
+                                    if (val != null) setState(() => row['nombre']?.text = val);
+                                  },
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                onPressed: () => _removerMaterialPrincipalRow(idx),
+                              ),
+                            ],
                           ),
-                        ),
-                        const SizedBox(width: 6),
-                        
-                        // 2. MATERIA PRIMA / CLASIFICACIÓN
-                        Expanded(
-                          flex: 3,
-                          child: TextFormField(
-                            controller: row['categoria'], // Usamos el controlador de categoría para el nombre libre
-                            decoration: const InputDecoration(
-                              labelText: 'Materia Prima / Clasificación',
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                            ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: TextFormField(
+                                  controller: row['categoria'],
+                                  decoration: const InputDecoration(
+                                    labelText: 'Materia Prima / Clasificación',
+                                    border: OutlineInputBorder(),
+                                    contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                flex: 1,
+                                child: TextFormField(
+                                  controller: row['cantidad'],
+                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                  decoration: const InputDecoration(
+                                    labelText: 'Kg',
+                                    suffixText: 'kg',
+                                    border: OutlineInputBorder(),
+                                    contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        const SizedBox(width: 6),
-                        
-                        // 3. KILOGRAMOS
-                        Expanded(
-                          flex: 1,
-                          child: TextFormField(
-                            controller: row['cantidad'],
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            decoration: const InputDecoration(
-                              labelText: 'Kg',
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                            ),
-                          ),
-                        ),
-                        
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red, size: 20),
-                          onPressed: () => _removerMaterialPrincipalRow(idx),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   );
                 }),
@@ -573,121 +590,138 @@ class _AgregarFormulaScreenState extends State<AgregarFormulaScreen> {
                 ..._aditivosControllers.asMap().entries.map((entry) {
                   int idx = entry.key;
                   var row = entry.value;
-                  return Padding(
+                  return Card(
                     key: ValueKey('aditivo_$idx'),
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: DropdownButtonFormField<String>(
-                                value: row['nombre']?.text.isNotEmpty == true ? row['nombre']?.text : null,
-                                decoration: InputDecoration(
-                                  labelText: 'Nombre Aditivo ${idx + 1}',
-                                  border: const OutlineInputBorder(),
-                                ),
-                                items: () {
-                                  final items = _catalogoAditivos.map((aditivo) {
-                                    return DropdownMenuItem<String>(
-                                      value: aditivo.nombre,
-                                      child: Text(aditivo.nombre ?? 'Sin nombre'),
-                                    );
-                                  }).toList();
-                                  
-                                  final currentVal = row['nombre']?.text;
-                                  if (currentVal != null && currentVal.isNotEmpty && !_catalogoAditivos.any((a) => a.nombre == currentVal)) {
-                                    items.add(DropdownMenuItem<String>(
-                                      value: currentVal,
-                                      child: Text(currentVal),
-                                    ));
-                                  }
-                                  return items;
-                                }(),
-                                onChanged: (val) {
-                                  if (val != null) {
-                                    setState(() {
-                                      row['nombre']?.text = val;
-                                      
-                                      // Buscar el aditivo en el catálogo y autocompletar el origen si existe
-                                      try {
-                                        final aditivoInfo = _catalogoAditivos.firstWhere((a) => a.nombre == val);
-                                        if (aditivoInfo.origen != null && aditivoInfo.origen!.isNotEmpty) {
-                                          row['origen']?.text = aditivoInfo.origen!;
-                                        }
-                                      } catch (_) {
-                                        // Si no se encuentra o no tiene origen, no hace nada
-                                      }
-                                    });
-                                  }
-                                },
+                    margin: const EdgeInsets.only(bottom: 12),
+                    elevation: 1,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      side: BorderSide(color: Colors.grey.shade300, width: 1),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.science_outlined, color: primaryIndustrial),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Aditivo #${idx + 1}',
+                                style: const TextStyle(fontWeight: FontWeight.bold, color: primaryIndustrial),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              flex: 1,
-                              child: TextFormField(
-                                controller: row['cantidad'],
-                                keyboardType: const TextInputType.numberWithOptions(
-                                  decimal: true,
-                                ),
-                                decoration: const InputDecoration(
-                                  labelText: 'Kg',
-                                  border: OutlineInputBorder(),
-                                ),
+                              const Spacer(),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                onPressed: () => _removerAditivoRow(idx),
                               ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          DropdownButtonFormField<String>(
+                            value: row['nombre']?.text.isNotEmpty == true ? row['nombre']?.text : null,
+                            decoration: const InputDecoration(
+                              labelText: 'Nombre del Aditivo',
+                              border: OutlineInputBorder(),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => _removerAditivoRow(idx),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Builder(
-                          builder: (context) {
-                            final currentValue = row['origen']?.text ?? 'Minoritario 1';
-                            final defaultOrigins = [
-                              'Minoritario 1', 'Minoritario 2', 'Minoritario 3', 
-                              'Minoritario 4', 'Minoritario 5', 'Minoritario 6', 
-                              'Aglomerante PDF', 'Tlva Fibra'
-                            ];
-                            
-                            // Conjunto de items únicos
-                            final allItems = <String>{...defaultOrigins};
-                            if (currentValue.isNotEmpty) allItems.add(currentValue);
-                            
-                            // Añadir orígenes del catálogo (solo los que no estén vacíos)
-                            for (var adit in _catalogoAditivos) {
-                              if (adit.origen != null && adit.origen!.isNotEmpty) {
-                                allItems.add(adit.origen!);
+                            items: () {
+                              final items = _catalogoAditivos.map((aditivo) {
+                                return DropdownMenuItem<String>(
+                                  value: aditivo.nombre,
+                                  child: Text(aditivo.nombre ?? 'Sin nombre'),
+                                );
+                              }).toList();
+                              
+                              final currentVal = row['nombre']?.text;
+                              if (currentVal != null && currentVal.isNotEmpty && !_catalogoAditivos.any((a) => a.nombre == currentVal)) {
+                                items.add(DropdownMenuItem<String>(
+                                  value: currentVal,
+                                  child: Text(currentVal),
+                                ));
                               }
-                            }
+                              return items;
+                            }(),
+                            onChanged: (val) {
+                              if (val != null) {
+                                setState(() {
+                                  row['nombre']?.text = val;
+                                  
+                                  try {
+                                    final aditivoInfo = _catalogoAditivos.firstWhere((a) => a.nombre == val);
+                                    if (aditivoInfo.origen != null && aditivoInfo.origen!.isNotEmpty) {
+                                      row['origen']?.text = aditivoInfo.origen!;
+                                    }
+                                  } catch (_) {}
+                                });
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: Builder(
+                                  builder: (context) {
+                                    final currentValue = row['origen']?.text ?? 'Minoritario 1';
+                                    final defaultOrigins = [
+                                      'Minoritario 1', 'Minoritario 2', 'Minoritario 3', 
+                                      'Minoritario 4', 'Minoritario 5', 'Minoritario 6', 
+                                      'Aglomerante PDF', 'Tlva Fibra'
+                                    ];
+                                    
+                                    final allItems = <String>{...defaultOrigins};
+                                    if (currentValue.isNotEmpty) allItems.add(currentValue);
+                                    
+                                    for (var adit in _catalogoAditivos) {
+                                      if (adit.origen != null && adit.origen!.isNotEmpty) {
+                                        allItems.add(adit.origen!);
+                                      }
+                                    }
 
-                            return DropdownButtonFormField<String>(
-                              value: allItems.contains(currentValue) ? currentValue : 'Minoritario 1',
-                              decoration: const InputDecoration(
-                                labelText: 'Tolva de Origen',
-                                border: OutlineInputBorder(),
+                                    return DropdownButtonFormField<String>(
+                                      value: allItems.contains(currentValue) ? currentValue : 'Minoritario 1',
+                                      decoration: const InputDecoration(
+                                        labelText: 'Tolva de Origen',
+                                        border: OutlineInputBorder(),
+                                        contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                      ),
+                                      items: allItems.map((opt) {
+                                        String label = opt;
+                                        if (opt == 'Tlva Fibra') label = 'Tolva Fibra (Tlva)';
+                                        return DropdownMenuItem(value: opt, child: Text(label, style: const TextStyle(fontSize: 13)));
+                                      }).toList(),
+                                      onChanged: (val) {
+                                        if (val != null) {
+                                          setState(() {
+                                            row['origen']?.text = val;
+                                          });
+                                        }
+                                      },
+                                    );
+                                  }
+                                ),
                               ),
-                              items: allItems.map((opt) {
-                                String label = opt;
-                                if (opt == 'Tlva Fibra') label = 'Tolva Fibra (Tlva)';
-                                return DropdownMenuItem(value: opt, child: Text(label));
-                              }).toList(),
-                              onChanged: (val) {
-                                if (val != null) {
-                                  setState(() {
-                                    row['origen']?.text = val;
-                                  });
-                                }
-                              },
-                            );
-                          }
-                        ),
-                      ],
+                              const SizedBox(width: 10),
+                              Expanded(
+                                flex: 1,
+                                child: TextFormField(
+                                  controller: row['cantidad'],
+                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                  decoration: const InputDecoration(
+                                    labelText: 'Cantidad',
+                                    suffixText: 'kg',
+                                    border: OutlineInputBorder(),
+                                    contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 }),

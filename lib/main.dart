@@ -2,8 +2,7 @@
 
 // Vamos a explicar cada línea de este archivo de manera sencilla, para alguien que está aprendiendo Flutter y programación en general.
 
-// Las siguientes líneas son "importaciones". Sirven para decirle al proyecto qué herramientas y archivos va a usar más adelante:
-import 'package:flutter/services.dart'; // Permite realizar tareas con el sistema, como cerrar la app.
+import 'dart:io'; // Para salir físicamente de la aplicación.
 import 'package:flutter/material.dart';  // Importa todo lo necesario para hacer apps con Material Design.
 import 'package:provider/provider.dart'; // Importa Provider, una herramienta para manejar el estado (datos que cambian).
 import 'package:calproind/screens/calculadora_rollos_screen.dart';
@@ -205,7 +204,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             icon: const Icon(Icons.exit_to_app),
             tooltip: 'Salir',
             onPressed: () {
-              SystemNavigator.pop(); // Al presionar, se cierra la aplicación.
+              exit(0); // Al presionar, se cierra físicamente la aplicación.
             },
           ),
           const SizedBox(width: 8), // Espacio pequeño al final de la barra.

@@ -1,6 +1,6 @@
 // Archivo: lib/main_rollos.dart
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:calproind/constants.dart';
 import 'package:calproind/services/preferencias_service.dart';
 import 'package:calproind/screens/calculadora_rollos_solo_screen.dart';
@@ -93,7 +93,7 @@ class _RollosHomeScreenState extends State<RollosHomeScreen> with SingleTickerPr
           ),
           IconButton(
             icon: const Icon(Icons.exit_to_app),
-            onPressed: () => SystemNavigator.pop(),
+            onPressed: () => exit(0),
           ),
         ],
       ),
