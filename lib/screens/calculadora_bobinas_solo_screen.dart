@@ -59,15 +59,19 @@ class _CalculadoraBobinasSoloScreenState extends State<CalculadoraBobinasSoloScr
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildInputSection(),
-          const SizedBox(height: 30),
-          _buildResultSection(),
-        ],
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.opaque,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildInputSection(),
+            const SizedBox(height: 30),
+            _buildResultSection(),
+          ],
+        ),
       ),
     );
   }
@@ -102,10 +106,15 @@ class _CalculadoraBobinasSoloScreenState extends State<CalculadoraBobinasSoloScr
             TextField(
               controller: _grosorController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Ej: 2.5',
                 suffixText: 'cm',
-                border: OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.done, color: primaryIndustrial),
+                  tooltip: 'Listo',
+                  onPressed: () => FocusScope.of(context).unfocus(),
+                ),
+                border: const OutlineInputBorder(),
               ),
               textInputAction: TextInputAction.done,
               onSubmitted: (_) {

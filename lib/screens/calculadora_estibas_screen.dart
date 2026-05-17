@@ -69,10 +69,13 @@ class _CalculadoraEstibasScreenState extends State<CalculadoraEstibasScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        behavior: HitTestBehavior.opaque,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // --- Tarjeta de Entrada ---
             Card(
@@ -100,6 +103,11 @@ class _CalculadoraEstibasScreenState extends State<CalculadoraEstibasScreen> {
                       decoration: InputDecoration(
                         hintText: '0',
                         suffixText: 'kg',
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.done, color: primaryIndustrial),
+                          tooltip: 'Listo',
+                          onPressed: () => FocusScope.of(context).unfocus(),
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: const BorderSide(color: primaryIndustrial, width: 2),
@@ -226,6 +234,7 @@ class _CalculadoraEstibasScreenState extends State<CalculadoraEstibasScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

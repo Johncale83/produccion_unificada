@@ -105,10 +105,18 @@ class _CalculadoraRollosSoloScreenState extends State<CalculadoraRollosSoloScree
             TextField(
               controller: _grosorController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Grosor en el rollo (cm)',
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
                 suffixText: 'cm',
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.done, color: primaryIndustrial),
+                  tooltip: 'Listo',
+                  onPressed: () {
+                    _calcular();
+                    FocusScope.of(context).unfocus();
+                  },
+                ),
               ),
               textInputAction: TextInputAction.done,
               onSubmitted: (_) {
